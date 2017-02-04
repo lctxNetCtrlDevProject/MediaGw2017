@@ -1,5 +1,1 @@
-append GPL
-
-Version Test
-
-Version Test 2
+This project for LCTX834 2017 netCtrl Dev development
