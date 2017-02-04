@@ -1,0 +1,10 @@
+---- gRpcSeatMng_default_Socket Matches (9 in 1 files) ----
+MGW_lan_bus_control.c (src):int 	gRpcSeatMng_default_Socket = 0;
+MGW_lan_bus_control.c (src):	Socket_Send(gRpcSeatMng_default_Socket, (struct sockaddr_in*)&SocketT_834BoardIP, buf, len);
+MGW_lan_bus_control.c (src):	ret = Socket_Send(gRpcSeatMng_default_Socket, (struct sockaddr_in*)&SocketT_default_SeatMngIP, buf, len);
+MGW_lan_bus_control.c (src):		if((Rec_Len = recvfrom(gRpcSeatMng_default_Socket, abuf, MAX_SOCKET_LEN, 0,
+MGW_lan_bus_control.c (src):	if ((gRpcSeatMng_default_Socket = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+MGW_lan_bus_control.c (src):	if (DRV_ERR == bind(gRpcSeatMng_default_Socket, (struct sockaddr *)&my_addr, sizeof(my_addr)))
+MGW_lan_bus_control.c (src):		close(gRpcSeatMng_default_Socket);
+MGW_lan_bus_control.c (src):	if(gRpcSeatMng_default_Socket)
+MGW_lan_bus_control.c (src):		close(gRpcSeatMng_default_Socket);
