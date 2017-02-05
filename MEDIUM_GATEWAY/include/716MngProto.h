@@ -10,8 +10,12 @@ typedef enum{
 	ZW_INFO_TYPE_IPINTF_ROUTE_CFG = 0x81,
 	ZW_INFO_TYPE_IP_AS_CFG = 0x87,
 
+	ZW_INFO_TYPE_FIBR_STA_CFG  = 0xa2,
+	ZW_INFO_TYPE_FIBR_INTF_CFG = 0xa3,
+
 	ZW_INFO_TYPE_ST_RT_CFG = 0xa7,
 	ZW_INFO_TYPE_LYCFF_CFG = 0xaa,
+	ZW_INFO_TYPE_FIBR_YW_CFG = 0xab,
 	ZW_INFO_TYPE_FRP_CFG = 0xb0,
 	ZW_INFO_TYPE_LYJH_CFG = 0xbe,
 	ZW_INFO_TYPE_RADIO_INTF_CFG = 0xb5,	/*radio intf cfg*/
@@ -263,6 +267,41 @@ typedef struct
 	uint8 outPort;
 	uint8 metric;
 }MNG_ZW_STATIC_RT_CFG_PKT;
+
+typedef struct
+{
+	ZwMngHeader header;
+	uint8 lSta;
+	uint8 mSta;
+}MNG_ZW_FIBR_STA_CFG_PKT;
+
+typedef struct
+{
+	ZwMngHeader header;
+	uint8 speed;
+	uint8 mode;
+}MNG_ZW_FIBR_INTF_CFG_PKT;
+
+
+typedef struct
+{
+	ZwMngHeader header;
+	uint8 ope;
+	uint8 cnt;
+	uint8 ywld;
+	uint8 slot;
+	uint8 ywMod;
+	uint8 sta1;
+	uint8 port1;
+	uint8 chan1;
+	uint8 sta2;
+	uint8 port2;
+	uint8 chan2;
+	uint8 eof;
+}MNG_ZW_FIBR_YW_CFG_PKT;
+
+
+
 
 
 #pragma pack(0)

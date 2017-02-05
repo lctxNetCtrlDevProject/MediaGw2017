@@ -926,4 +926,94 @@ int jtlypa_cb(unsigned char *buf, int len) {
 }
 
 
+int Board_Mng_fibrSta_Cfg(uint8 lSta, uint8 mSta)
+{
+	MNG_ZW_FIBR_STA_CFG_PKT ZxCmd;
+	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
+
+	ZxCmd.header.InfoType = ZW_INFO_TYPE_FIBR_STA_CFG;
+	ZxCmd.header.CmdLen = 2;
+	ZxCmd.lSta = lSta;
+	ZxCmd.mSta = mSta;
+
+	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
+	return 0;
+}
+
+int Board_Mng_fibrIntf_Cfg(uint8 speed, uint8 mode)
+{
+	MNG_ZW_FIBR_INTF_CFG_PKT ZxCmd;
+	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
+
+	ZxCmd.header.InfoType = ZW_INFO_TYPE_FIBR_INTF_CFG;
+	ZxCmd.header.CmdLen = 2;
+	ZxCmd.speed = speed;
+	ZxCmd.mode  = mode;
+
+	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
+	return 0;
+}
+
+int Board_Mng_fibrYw_Cfg(
+	uint8 ywld, uint8 slot, uint8 mod, uint8 sta1, uint8 port1, uint8 chan1, uint8 sta2, uint8 port2, uint8 chan2
+)
+{
+	MNG_ZW_FIBR_YW_CFG_PKT ZxCmd;
+	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
+
+	ZxCmd.header.InfoType = ZW_INFO_TYPE_FIBR_YW_CFG;
+	ZxCmd.header.CmdLen = 12;
+	ZxCmd.ope = 1; 	/*1, add; 2 del*/
+	ZxCmd.cnt = 1; 	/*only support one*/
+	ZxCmd.ywld = ywld;
+	ZxCmd.slot = slot;
+	ZxCmd.ywMod = mod;
+	ZxCmd.sta1 = sta1;
+	ZxCmd.port1 = port1;
+	ZxCmd.chan1 = chan1;
+	ZxCmd.sta2 =sta2;
+	ZxCmd.port2 = port2;
+	ZxCmd.chan2 = chan2;
+	ZxCmd.eof = 0xFF;
+
+	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
+	return 0;
+}
+
+
+int fibrpa_cb(unsigned char *buf, int len) {
+	int cnt,i;
+	uint8 lStaID, mStaID,speed, mode, simSpeed;
+	uint8 *pCfg, ywld, slot,ywMod,sta1,port1, chan1, sta2,port2,chan2;	/*one qunlu yewu*/
+	dump_buf(__func__, buf, len);
+
+	lStaID = buf[0];
+	mStaID = buf[1];
+	speed = buf[2];
+	mode = buf[3];
+	simSpeed = buf[4];
+
+	Board_Mng_fibrSta_Cfg(lStaID,mStaID);
+	Board_Mng_fibrIntf_Cfg(speed,mode);
+
+	cnt = buf[5];		//cnt only be supported to 1
+	for( i = 0; i < cnt; i++){
+		pCfg = buf[6 + i *10];
+		ywld =  *(pCfg);
+		slot = *(pCfg +1);
+		ywMod = *(pCfg +2);
+		sta1 = *(pCfg +3);
+		port1 = *(pCfg +4);
+		chan1 = *(pCfg +5);
+		sta2 = *(pCfg +6);
+		port2 = *(pCfg +7);
+		chan2 = *(pCfg +8);
+		Board_Mng_fibrYw_Cfg(ywld,slot,ywMod,sta1,port1,chan1,sta2,port2,chan2);
+	}
+	
+	return 0;
+}
+
+
+
 

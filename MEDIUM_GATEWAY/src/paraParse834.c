@@ -136,10 +136,4 @@ int compar_cb(unsigned char *buf, int len) {
 	return 0;
 }
 
-int fibrpa_cb(unsigned char *buf, int len) {
-	dump_buf(__func__, buf, len);
-
-	return 0;
-}
-
 
