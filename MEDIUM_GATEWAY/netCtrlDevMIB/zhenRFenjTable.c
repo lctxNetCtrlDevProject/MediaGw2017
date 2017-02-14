@@ -15,6 +15,7 @@
 void
 init_zhenRFenjTable(void)
 {
+    initZrfjTab();
   /* here we initialize all the tables we're planning on supporting */
     initialize_table_zhenRFenjTable();
 }

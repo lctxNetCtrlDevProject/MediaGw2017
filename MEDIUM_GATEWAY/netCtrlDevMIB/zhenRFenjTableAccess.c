@@ -9,26 +9,43 @@
 #include <string.h>
 #include <math.h>
 #include "zhenRFenjTableAccess.h"
+#include "paraMng.h"
+#include "osa.h"
+
+/**************Macro**************************/
+#define ZRFJ_FETCH_TIMEOUT		5*10		/* fetching time out 5s*/
 
 /************Global Variablies*******************/
 zhenRFJTab_type g_zrfjTab[ZHENR_FENJI_ITEM_MAX];
+int 			      g_zrfjTabItemCnt = 0;
+OSA_MutexHndl    g_zrfjSynMutex;		/*mutex using to syn the query & response*/
 
+void initZrfjTab(){
+	memset(&g_zrfjTab,0xFF, sizeof(g_zrfjTab));
+	g_zrfjTabItemCnt = 0;
+	OSA_mutexCreate(&g_zrfjSynMutex);
+	OSA_mutexLock(&g_zrfjSynMutex);		/*decrease mutex to 0*/
+}
 
-/*stake func, should fetch zrfj table by PDU*/
-void fetchZrfjTab(){
-	int i = 0;
-	for(i = 0; i < ZHENR_FENJI_ITEM_MAX; i++){
-		g_zrfjTab[i].zjID = i;
-		g_zrfjTab[i].fenJID = i *random();
-		memset(g_zrfjTab[i].bcdFenJNum,0x00,BCD_PHONE_NUM_LEN);
-		sprintf(g_zrfjTab[i].bcdFenJNum,"Num_%d",i);
-	}
+void setZrfjTab(zhenRFJTab_type tab[], int itemCnt){
+	if(!tab || itemCnt <=0 )
+		return;
+	g_zrfjTabItemCnt = itemCnt;
+	memcpy(&g_zrfjTab,tab,itemCnt*sizeof(zhenRFJTab_type));
+	OSA_mutexUnlock(&g_zrfjSynMutex);
+}
+
+static void fetchZrfjTabTimeout(){
+	memset(&g_zrfjTab,0xFF, sizeof(g_zrfjTab));
+	g_zrfjTabItemCnt = 0;
+	OSA_mutexUnlock(&g_zrfjSynMutex);
 }
 
 zhenRFJTab_type *getGZRFJTab(int *itemCnt){
-	fetchZrfjTab();
-
-	*itemCnt = ZHENR_FENJI_ITEM_MAX;
+	sndQueryZrfjTab();
+	osa_add_timer(ZRFJ_FETCH_TIMEOUT,fetchZrfjTabTimeout,NULL,TIMER_ONCE);
+	OSA_mutexLock(&g_zrfjSynMutex);
+	*itemCnt = g_zrfjTabItemCnt;
 	return g_zrfjTab;
 }
 

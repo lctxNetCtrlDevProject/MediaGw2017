@@ -2,6 +2,7 @@
 #CC=powerpc-e300c3-linux-gcc
 CC=gcc
 
+EXTERN_INC = ../include/
 #==================OSA===========================
 OSA_INC = ./osa/inc/
 OSA_SRC_PATH = ./osa/src/
@@ -9,7 +10,7 @@ OSA_SRCS = ./osa/src/osa_mutex.c ./osa/src/osa_network.c ./osa/src/osa_thr.c ./o
 OSA_OBJS = $(OSA_SRCS:.c=.o)
 
 #==================Public===========================
-PUBLIC_SRCS = public.c
+PUBLIC_SRCS = public.c paraMng.c
 PUBLIC_OBJS = $(PUBLIC_SRCS:.c=.o)
 
 #==================ZhenRuFenJiTab===================
@@ -34,7 +35,7 @@ NET-SNMP-LIBS="${NET-SMP-INSTALL-DIR}/lib"
 #CROSS_LIBS=/opt/MPC83xx/powerpc-e300c3-linux/lib/
 
 # shared library flags (assumes gcc)
-CFLAGS= -fPIC -I$(NET-SNMP-HEADFILES) -I$(OSA_INC)
+CFLAGS= -fPIC -I$(NET-SNMP-HEADFILES) -I$(OSA_INC) -I$(EXTERN_INC)
 DLFLAGS=-g -fPIC -shared
 
 all:$(TARGETS)

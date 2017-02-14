@@ -1,6 +1,6 @@
 #ifndef	_INTERIOR_PROTOCOL_H_
 #define	_INTERIOR_PROTOCOL_H_
-
+#include "common.h"
 
 #if defined(__cplusplus) || defined(c_plusplus)
 extern "C"

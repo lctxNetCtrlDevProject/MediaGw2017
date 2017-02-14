@@ -14,7 +14,10 @@ typedef struct {
 	unsigned char  bcdFenJNum[BCD_PHONE_NUM_LEN]; 
 }zhenRFJTab_type;
 
+
+extern void initZrfjTab();
 extern zhenRFJTab_type *getGZRFJTab(int *itemCnt);
+extern void setZrfjTab(zhenRFJTab_type tab[], int itemCnt);
 
 
 #pragma pack(0)
