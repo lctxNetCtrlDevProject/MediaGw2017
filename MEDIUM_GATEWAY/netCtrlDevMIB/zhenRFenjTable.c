@@ -8,7 +8,7 @@
 #include <net-snmp/agent/net-snmp-agent-includes.h>
 #include "zhenRFenjTable.h"
 #include "zhenRFenjTableAccess.h"
-#include "debug.h"
+#include "osa_debug.h"
 #include "public.h"
 
 /** Initializes the zhenRFenjTable module */
@@ -120,7 +120,7 @@ zhenRFenjTable_removeEntry( struct zhenRFenjTable_entry *entry ) {
 
 static void fillZrfnEntry(struct zhenRFenjTable_entry *entry, zhenRFJTab_type *item){
 	if(!entry || !item){
-		ERROR("Invalid Para");
+		OSA_ERROR("Invalid Para");
 		return;
 	}
 	entry->zjID = item->zjID;
@@ -137,7 +137,7 @@ static void loadZrfjTab(){
 	
 	tab = getGZRFJTab(&itemCnt);
 	if(!tab || itemCnt <=0){
-		ERROR("Can't load zhenRu FenJi Table");
+		OSA_ERROR("Can't load zhenRu FenJi Table");
 		return;
 	}
 	
