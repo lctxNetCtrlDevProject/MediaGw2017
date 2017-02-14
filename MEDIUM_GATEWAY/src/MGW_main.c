@@ -624,6 +624,7 @@ int main(int argc, char *argv[])
 	}
 
 	RpcDbg_Socket_init();
+	snmpAgentMng_Socket_init();		/*cfg dst addr&port of 834 snmp agent*/
 	RpcDisplayMng_Socket_init();
 	RpcSeatMng_Socket_init();
 	Board_716_Mng_Socket_init();

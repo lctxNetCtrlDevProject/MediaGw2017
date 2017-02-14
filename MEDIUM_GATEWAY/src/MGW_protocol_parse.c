@@ -4620,6 +4620,10 @@ int32 Board_Mng_834Proc(uint8 *buf, int32 len)
 		/* 炮防模式下,键显由834开发，查询整机模式和K口模式发送给显示板 */
 		send.header.dst_addr = BAOWEN_ADDR_TYPE_834_DIS_BOARD;
 		Board_Mng_SendTo_Dis((uint8 *)&send, sizeof(ST_SEAT_MNG_HEADER) + send.header.data_len);			
+
+		/* Forward Pkt to 834 Net snmp agent*/
+		send.header.dst_addr = BAOWEN_ADDR_TYPE_834_SNMP_AGENT;
+		Board_Mng_SendTo_SnmpAgent((uint8 *)&send, sizeof(ST_SEAT_MNG_HEADER) + send.header.data_len);			
 	}
 
 	return DRV_OK;

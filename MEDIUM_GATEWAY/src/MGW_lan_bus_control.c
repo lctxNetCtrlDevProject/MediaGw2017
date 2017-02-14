@@ -8,7 +8,10 @@
 
 /*端口及IP信息由配置文件确定*/
 #define		RTP_START		30000
-#define		RTP_END		50000
+#define		RTP_END		50000 
+#define 		SNMP_AGENT_834_PORT	50002
+
+
 
 
 UDP_SOCKET gIpcSemSocket;	/*scu--socket*/
@@ -38,6 +41,7 @@ struct sockaddr_in SocketT_DisPlayIP;
 struct sockaddr_in SocketT_SeatMngIP;	
 struct sockaddr_in SocketT_default_SeatMngIP;
 struct sockaddr_in SocketT_834BoardIP;
+struct sockaddr_in	SocketT_834SnmpAgent;
 struct sockaddr_in SocketT_DisPlayIP_zhuangjia;
 struct sockaddr_in SocketT_DisPlayIP_716;
 
@@ -78,6 +82,28 @@ int32 Board_Mng_SendTo_834(uint8 *buf, int32 len)
 	
 	return DRV_OK;
 }
+
+int32 Board_Mng_SendTo_SnmpAgent(uint8 *buf, int32 len)
+{
+	int i = 0;
+
+	if(flag_dump == DUMP_OPEN)
+	{
+		printf("%s\r\n", __func__);
+		for(i = 0; i < len; i++)
+		{
+			printf("%02x:", buf[i]);
+		}
+		printf("\r\n");
+	}
+
+	Socket_Send(gRpcSeatMngSocket, (struct sockaddr_in*)&SocketT_834SnmpAgent, buf, len);
+		
+	//Dbg_Socket_SendToPc(MONITOR_I_50_SEM_BIT, buf, len);
+	
+	return DRV_OK;
+}
+
 
 int32 Board_Mng_SendTo_716(uint8 *buf, int32 len)
 {
@@ -505,6 +531,12 @@ void RpcDisplayMng_RxThread(void)
 			Board_Mng_Process(abuf, Rec_Len);
 		}
 	}
+}
+
+int32 snmpAgentMng_Socket_init(void){
+	SocketT_834SnmpAgent.sin_family = AF_INET;
+	SocketT_834SnmpAgent.sin_addr.s_addr = htonl(inet_addr("127.0.0.1"));
+	SocketT_834SnmpAgent.sin_port = htonl(SNMP_AGENT_834_PORT);
 }
 
 int32 RpcDisplayMng_Socket_init(void)
@@ -968,6 +1000,10 @@ void Board_716_Mng_RxThread(void)
 					{
 						Board_Mng_ZhuanXianAckMsgProc(abuf, Rec_Len);
 					}
+
+					/* Forward Pkt to 834 Net snmp agent*/
+					msg.header.dst_addr = BAOWEN_ADDR_TYPE_834_SNMP_AGENT;
+					Board_Mng_SendTo_SnmpAgent((uint8 *)&msg, sizeof(ST_SEAT_MNG_HEADER) + msg.header.data_len);
 
 					/* Deleted by lishibing 20151011，装甲和炮防模式下战网参数设置响应不需要发送给50所 */
 					#if 0 
