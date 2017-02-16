@@ -98,7 +98,7 @@ int32 Board_Mng_SendTo_SnmpAgent(uint8 *buf, int32 len)
 	}
 
 	Socket_Send(gRpcSeatMngSocket, (struct sockaddr_in*)&SocketT_834SnmpAgent, buf, len);
-		
+	printf("%s_%d ,send to , addr=%s, port=%d, len=%d\r\n",__func__,__LINE__,inet_ntoa(SocketT_834SnmpAgent.sin_addr),ntohs(SocketT_834SnmpAgent.sin_port),len);	
 	//Dbg_Socket_SendToPc(MONITOR_I_50_SEM_BIT, buf, len);
 	
 	return DRV_OK;

@@ -52,6 +52,7 @@ int32 Socket_Send(int32 bsockfd,struct sockaddr_in *pt, uint8 *ptr,int32 len)
 
 	if (DRV_ERR == ret)
 	{
+		printf("%s_%d ,send Fail, errno=%d\r\n",__func__,__LINE__,errno);
 		printf("send socket udp error(%s) port %d!\n",inet_ntoa(des_addr_p->sin_addr), des_addr_p->sin_port);		
 		//printf("send socket udp error!\n");	
 		
@@ -4331,7 +4332,6 @@ int32 Board_Mng_834Proc(uint8 *buf, int32 len)
 			{
 				return DRV_OK;
 			}
-			
 			if(3 == msg->header.data_len)
 			{
 				int trunk_cnt = 2;

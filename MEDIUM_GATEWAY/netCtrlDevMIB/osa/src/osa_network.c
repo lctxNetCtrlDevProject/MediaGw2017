@@ -74,6 +74,7 @@ SOCKET_TYPE osa_udpCreateBindSock(char *ipaddr, unsigned short port){
 		OSA_ERROR("port =%d socket bind error!,errno=%d",port,errno);
 		return -1;
 	}
+	OSA_DBG_MSG("bind Success with port=%d",port);
 	return(local_sockfd);
 }
 

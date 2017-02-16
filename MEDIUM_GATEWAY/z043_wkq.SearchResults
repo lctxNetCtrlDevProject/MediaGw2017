@@ -1,4 +1,6 @@
----- usrnum_cb Matches (3 in 2 files) ----
-MGWparaInject.c (src):extern int usrnum_cb(unsigned char *buf, int len);
-MGWparaInject.c (src):	{"usrnum", usrnum_cb},
-paraParse716.c (src):int usrnum_cb(unsigned char *buf, int len) {
+---- g_listenFd Matches (5 in 1 files) ----
+paraInjectAgent.c (parainjectagent):int 			g_listenFd;
+paraInjectAgent.c (parainjectagent):	iRet = sendto(g_listenFd,buf,len,0,&addr,addr_len);
+paraInjectAgent.c (parainjectagent):	g_listenFd = createListenSocket();
+paraInjectAgent.c (parainjectagent):	if(g_listenFd < 0 ){
+paraInjectAgent.c (parainjectagent):		len  = recvfrom(g_listenFd, buf,sizeof(buf),0,&addr,&addr_len);

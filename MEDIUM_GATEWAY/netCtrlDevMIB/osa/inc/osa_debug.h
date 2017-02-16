@@ -34,12 +34,11 @@
 
 /*------------------------- Global Function Prototypes -----------------------*/
 #define FUN_STR __func__
+#define _DEBUG
 
 
 
 
-
-#ifdef _DEBUG
 #define OSA_ERROR(...) \
   do \
   { \
@@ -48,9 +47,6 @@
   snmp_log(LOG_WARNING, "\n"); \
   } \
   while(0);
-#else
-#define OSA_ERROR(...)
-#endif
 
 #ifdef _DEBUG
 #define OSA_DBG_MSG(...) \
@@ -58,6 +54,7 @@
   { \
   snmp_log(LOG_WARNING, "\n"); \
   snmp_log(LOG_WARNING, __VA_ARGS__); \
+   snmp_log(LOG_WARNING, "\n"); \
   } \
   while(0);
 #else

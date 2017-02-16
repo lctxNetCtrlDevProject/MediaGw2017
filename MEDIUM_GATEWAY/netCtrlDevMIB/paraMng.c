@@ -3,9 +3,11 @@
 *@Author: Andy-wei.hou
 *@Log:	Created by Andy-wei.hou 2017.02.14
 */
+#include <errno.h>
 #include "osa.h"
 #include "zhenRFenjTableAccess.h"
 #include "interior_protocol.h"
+#include "public.h"
 
 #define	SNMP_AGENT_834_PORT	50002
 #define 	BOARD_834_PORT		30006
@@ -51,6 +53,7 @@ enum __834_PARA_ID__
 SOCKET_TYPE g_paraPduRcvFd ;			/*Rcving fd from 834 board*/
 
 
+
 static int sendBufTo834Board(unsigned char *buf, int len){
 	int iRet = -1;
 	if(!buf || len <=0){
@@ -84,6 +87,7 @@ int  sndPktTo834Board(char *buf, int len){
 
 void sndQueryZrfjTab(){
 	char buf[3];
+	OSA_DBG_MSG("%s_%d",__func__,__LINE__);
 	memset(buf,0x00,sizeof(buf));
 	buf[0] = MSG_834_ZHENRUFENJI_GET;
 	sndPktTo834Board(buf,sizeof(buf));
@@ -94,6 +98,7 @@ static void handle716Para(unsigned char *buf, int len){
 static void handle834Para(unsigned char *buf, int len){
 
 	unsigned char cmd = buf[0];
+	OSA_DBG_MSGX("cmd =%x",cmd);
 	short msgLen =  ntohs(*(short *)(&buf[1]));
 	switch(cmd){
 		case MSG_834_ZHENRUFENJI_GET_ACK:{
@@ -146,34 +151,56 @@ static void paraProc(unsigned char *buf, int len){
 	
 }
 void paraPduRcvThr(){
-	int iRet = -1;
-	SOCKET_TYPE fd;
 	struct sockaddr_in fromAddr;
 	int fromAddrLen ;
+	fd_set fSets;
+	struct timeval time_out;
+	int iRet = -1;
 	unsigned char buf[500];
 
 	fromAddrLen = sizeof(fromAddr);
-	fd = osa_udpCreateBindSock(NULL,SNMP_AGENT_834_PORT);
-	if(fd < 0){
-		OSA_ERROR("Can't Create pdu recving port");
-		return;
+	
+	OSA_DBG_MSG("Thread %s Running, g_paraPduRcvFd=%d ",__func__,g_paraPduRcvFd);
+	while(1)
+		{
+		FD_ZERO(&fSets);
+		FD_SET(g_paraPduRcvFd,&fSets);
+		time_out.tv_sec  = 0;
+		time_out.tv_usec = 500*1000;
+		iRet= select(g_paraPduRcvFd+1, &fSets,  NULL, NULL,  &time_out);
+		//OSA_DBG_MSGX(" iRet =%d  ",iRet);
+		if(iRet > 0){		
+			if(FD_ISSET(g_paraPduRcvFd,&fSets)){
+				memset(buf,0x00,sizeof(buf));
+				iRet = recvfrom(g_paraPduRcvFd, buf, sizeof(buf), 0,  (struct sockaddr *)&fromAddr, &fromAddrLen);
+				if(iRet > 0){
+					dispBuf (buf,iRet,__func__);
+					paraProc(buf,iRet);
+				}
+				else{
+					OSA_ERROR("recvfrom fail,errno=%d",errno);
+				}
+			}
+		}	
+		
 	}
-	OSA_DBG_MSG("Thread %s Running",__func__);
 
-	while(1){
-		memset(buf,0x00,sizeof(buf));
-		iRet = recvfrom(fd, buf, sizeof(buf), 0,  (struct sockaddr *)&fromAddr, &fromAddrLen);
-		if(iRet > 0){
-			paraProc(buf,iRet);
-		}
-	}
-	
-	
 }
-
+static SOCKET_TYPE initPduRcvPort(){
+	SOCKET_TYPE fd =  osa_udpCreateBindSock(NULL,SNMP_AGENT_834_PORT);
+	if(fd< 0){
+		OSA_ERROR("Can't Create pdu recving port");
+		return -1;
+	}
+	return fd;
+}
 int startAgentRcvPduThr(){
 	int iRet = 0;
 	OSA_ThrHndl handle;
+
+	g_paraPduRcvFd =initPduRcvPort();
+	if(g_paraPduRcvFd <0)
+		return -1;
 
 	iRet = OSA_ThreadCreate(&handle,paraPduRcvThr,NULL);
 	if( iRet != 0 ){

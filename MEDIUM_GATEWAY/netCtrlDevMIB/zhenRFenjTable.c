@@ -15,6 +15,7 @@
 void
 init_zhenRFenjTable(void)
 {
+    OSA_DBG_MSGX(" ");
     initZrfjTab();
   /* here we initialize all the tables we're planning on supporting */
     initialize_table_zhenRFenjTable();
@@ -126,7 +127,7 @@ static void fillZrfnEntry(struct zhenRFenjTable_entry *entry, zhenRFJTab_type *i
 	}
 	entry->zjID = item->zjID;
 	entry->fenJID = item->fenJID;
-	getStrNumByBcdNum(entry->fenJNum,item->bcdFenJNum,BCD_PHONE_NUM_LEN);
+	bcd_to_string(item->bcdFenJNum,entry->fenJNum,BCD_PHONE_NUM_LEN);
 }
 
 static void loadZrfjTab(){
