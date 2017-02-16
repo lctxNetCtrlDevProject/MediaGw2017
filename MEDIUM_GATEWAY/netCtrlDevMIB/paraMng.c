@@ -65,7 +65,7 @@ static int sendBufTo834Board(unsigned char *buf, int len){
 		OSA_ERROR("Listen fd not created");
 		return iRet;
 	}
-	iRet = osa_udpSendData(g_paraPduRcvFd,buf,len,"127.0.0.1",SNMP_AGENT_834_PORT);
+	iRet = osa_udpSendData(g_paraPduRcvFd,buf,len,"127.0.0.1",BOARD_834_PORT);
 	if(iRet != len){
 		OSA_ERROR("Send Fail");
 		return  -1;
@@ -99,6 +99,7 @@ static void handle834Para(unsigned char *buf, int len){
 
 	unsigned char cmd = buf[0];
 	OSA_DBG_MSGX("cmd =%x",cmd);
+	dispBuf(buf,len,__func__);
 	short msgLen =  ntohs(*(short *)(&buf[1]));
 	switch(cmd){
 		case MSG_834_ZHENRUFENJI_GET_ACK:{
@@ -137,6 +138,7 @@ static void paraProc(unsigned char *buf, int len){
 			/*handle pkt from 716 board*/
 			handle716Para(msg->body,msg->header.data_len);
 		}break;
+		case BAOWEN_ADDR_TYPE_834_SNMP_AGENT:
 		case BAOWEN_ADDR_TYPE_834_BOARD:{
 			handle834Para(msg->body,msg->header.data_len);
 		}break;
@@ -174,7 +176,7 @@ void paraPduRcvThr(){
 				memset(buf,0x00,sizeof(buf));
 				iRet = recvfrom(g_paraPduRcvFd, buf, sizeof(buf), 0,  (struct sockaddr *)&fromAddr, &fromAddrLen);
 				if(iRet > 0){
-					dispBuf (buf,iRet,__func__);
+					//dispBuf (buf,iRet,__func__);
 					paraProc(buf,iRet);
 				}
 				else{

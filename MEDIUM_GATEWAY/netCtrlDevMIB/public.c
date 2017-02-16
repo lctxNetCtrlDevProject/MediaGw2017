@@ -7,13 +7,13 @@ void dispBuf(unsigned char *buf, int len, const char *name){
 	if(!buf || len <= 0)
 		return;
 	if(name)
-		snmp_log(LOG_WARNING,"/r/n%s[",name);
+		snmp_log(LOG_WARNING,"]\r\n%s[",name);
 	else
-		snmp_log(LOG_WARNING,"/r/n[");
+		snmp_log(LOG_WARNING,"\r\n[");
 	for(i =0; i<len; i++){
 		snmp_log(LOG_WARNING,"  %02X",buf[i]);
 	}
-	snmp_log(LOG_WARNING,"]/r/n");
+	snmp_log(LOG_WARNING,"]\r\n");
 }
 
 /*transform bcd num to str num*/
@@ -21,7 +21,7 @@ int bcd_to_string(char *bcd, char *strDst, int size)
 {
 	int i = 0;
 	char num = 0;
-	
+	dispBuf(bcd,size,__func__);
 	for (i = 0; i < size; ++i) {
 		num = bcd[i] & 0xf;
 		if (0xf == num) {

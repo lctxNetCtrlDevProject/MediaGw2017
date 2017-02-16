@@ -813,7 +813,8 @@ int32 RpcSeatMng_Socket_init(void)
 		/* local socket setting  */
 	SocketT_834BoardIP.sin_family = AF_INET;
 	SocketT_834BoardIP.sin_port = htonl(30006);
-	SocketT_834BoardIP.sin_addr.s_addr = htonl(inet_addr(get_config_var_str(mgw_cfg,"EXTEND_LOCAL_IP")));
+	//SocketT_834BoardIP.sin_addr.s_addr = htonl(inet_a
+	SocketT_834BoardIP.sin_addr.s_addr = htonl(INADDR_ANY);
 	
 	if ((gRpcSeatMngSocket = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
 	{

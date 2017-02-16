@@ -13,7 +13,7 @@
 #include "osa.h"
 
 /**************Macro**************************/
-#define ZRFJ_FETCH_TIMEOUT		5*10		/* fetching time out 5s*/
+#define ZRFJ_FETCH_TIMEOUT		1*10		/* fetching time out 5s*/
 
 /************Global Variablies*******************/
 zhenRFJTab_type g_zrfjTab[ZHENR_FENJI_ITEM_MAX];

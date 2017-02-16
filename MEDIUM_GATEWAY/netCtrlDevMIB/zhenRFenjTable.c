@@ -89,6 +89,7 @@ zhenRFenjTable_createEntry(
     if (!entry)
         return NULL;
 
+   memset(entry,0x00,sizeof(struct zhenRFenjTable_entry));
     entry->zjID = zjID;
     entry->next = zhenRFenjTable_head;
     zhenRFenjTable_head = entry;
@@ -128,6 +129,8 @@ static void fillZrfnEntry(struct zhenRFenjTable_entry *entry, zhenRFJTab_type *i
 	entry->zjID = item->zjID;
 	entry->fenJID = item->fenJID;
 	bcd_to_string(item->bcdFenJNum,entry->fenJNum,BCD_PHONE_NUM_LEN);
+	entry->fenJNum_len = strlen(entry->fenJNum);
+	OSA_DBG_MSGX("Str=%s",entry->fenJNum);
 }
 
 static void loadZrfjTab(){

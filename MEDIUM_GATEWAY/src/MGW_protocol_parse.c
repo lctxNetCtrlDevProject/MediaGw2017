@@ -4750,7 +4750,8 @@ int32 Board_Mng_Process(uint8 *buf, int32 len)
 	
 	if((BAOWEN_ADDR_TYPE_834_PC != rcv->header.src_addr) \
 		&& (BAOWEN_ADDR_TYPE_834_DIS_BOARD != rcv->header.src_addr)
-		&& (BAOWEN_ADDR_TYPE_30_PC != rcv->header.src_addr))
+		&& (BAOWEN_ADDR_TYPE_30_PC != rcv->header.src_addr)
+		&& (BAOWEN_ADDR_TYPE_834_SNMP_AGENT!= rcv->header.src_addr))
 	{
 		ERR("%s: drop packet src addr 0x%x\r\n", __func__, rcv->header.src_addr);
 		return DRV_ERR;
