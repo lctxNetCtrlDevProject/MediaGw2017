@@ -93,6 +93,15 @@ void sndQueryZrfjTab(){
 	sndPktTo834Board(buf,sizeof(buf));
 }
 
+void sndQueryConfTab(){
+	char buf[3];
+	OSA_DBG_MSG("%s_%d",__func__,__LINE__);
+	memset(buf,0x00,sizeof(buf));
+	buf[0] = MSG_834_GROUP_ID_GET;
+	sndPktTo834Board(buf,sizeof(buf));
+}
+
+
 static void handle716Para(unsigned char *buf, int len){
 }
 static void handle834Para(unsigned char *buf, int len){
@@ -112,6 +121,10 @@ static void handle834Para(unsigned char *buf, int len){
 		case MSG_834_WORKMODE_GET_ACK:{
 		}break;
 		case MSG_834_GROUP_ID_GET_ACK:{
+			int itemCnt = buf[3];
+			int i =0;
+			confTab_type *item = (confTab_type *)&buf[4];
+			
 		}break;
 		default:{
 		}

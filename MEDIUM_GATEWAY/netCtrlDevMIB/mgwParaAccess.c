@@ -13,42 +13,41 @@
 #include "osa.h"
 
 /**************Macro**************************/
-#define ZRFJ_FETCH_TIMEOUT		1*10		/* fetching time out 5s*/
+#define FETCH_TIMEOUT		1*10		/* fetching time out 5s*/
 
 /************Global Variablies*******************/
+
+/*--ZhenRuFenJiTable---*/
 zhenRFJTab_type g_zrfjTab[ZHENR_FENJI_ITEM_MAX];
 int 			      g_zrfjTabItemCnt = 0;
 OSA_MutexHndl    g_zrfjSynMutex;		/*mutex using to syn the query & response*/
 int			      g_zrfjTimerID;
 
+/*--ConferenceTable---*/
+confTab_type 	g_confTab[CONF_ITEM_MAX];
+int 			g_confTabItemCnt = 0;
+OSA_MutexHndl    g_confTabSynMutex;		/*mutex using to syn the query & response*/
+int			      g_confTabTimerID;
+
+static void freeTimer(int timerID){
+	if(timerID != -1){
+		osa_del_timer(timerID);
+		timerID = -1;
+	}
+}
+
 void initZrfjTab(){
-#if 1
 	memset(g_zrfjTab,0xFF, sizeof(g_zrfjTab));
 	g_zrfjTabItemCnt = 0;
 	OSA_mutexCreate(&g_zrfjSynMutex);
 	OSA_mutexLock(&g_zrfjSynMutex);		/*decrease mutex to 0*/
-#else
-	int i =0;
-	g_zrfjTabItemCnt = ZHENR_FENJI_ITEM_MAX;
-	for(i =0; i < g_zrfjTabItemCnt; i++){
-		g_zrfjTab[i].zjID = i;
-		g_zrfjTab[i].fenJID = i*10*random();
-	}
-
-#endif
 }
 
-static void freeZrfjTimer(){
-	if(g_zrfjTimerID != -1){
-		osa_del_timer(g_zrfjTimerID);
-		g_zrfjTimerID = -1;
-	}
-}
 
 void setZrfjTab(zhenRFJTab_type tab[], int itemCnt){
 	if(!tab || itemCnt <=0 )
 		return;
-	freeZrfjTimer();
+	freeTimer(g_zrfjTimerID);
 	
 	g_zrfjTabItemCnt = itemCnt;
 	memcpy(g_zrfjTab,tab,itemCnt*sizeof(zhenRFJTab_type));
@@ -63,15 +62,48 @@ static void fetchZrfjTabTimeout(){
 }
 
 zhenRFJTab_type *getGZRFJTab(int *itemCnt){
-#if 1	
 	sndQueryZrfjTab();
-	freeZrfjTimer();
-	g_zrfjTimerID = osa_add_timer(ZRFJ_FETCH_TIMEOUT,fetchZrfjTabTimeout,NULL,TIMER_ONCE);
+	freeTimer(g_zrfjTimerID);
+	g_zrfjTimerID = osa_add_timer(FETCH_TIMEOUT,fetchZrfjTabTimeout,NULL,TIMER_ONCE);
 	OSA_mutexLock(&g_zrfjSynMutex);	
-#endif
 	*itemCnt = g_zrfjTabItemCnt;
 	return g_zrfjTab;
 }
 
+
+
+void initConfTab(){
+	memset(g_confTab,0xFF, sizeof(g_confTab));
+	g_confTabItemCnt = 0;
+	OSA_mutexCreate(&g_confTabSynMutex);
+	OSA_mutexLock(&g_confTabSynMutex);		/*decrease mutex to 0*/
+}
+
+
+void setConfTab(confTab_type tab[], int itemCnt){
+	if(!tab || itemCnt <=0 )
+		return;
+	freeTimer(g_confTabTimerID);
+	
+	g_confTabItemCnt = itemCnt;
+	memcpy(g_confTab,tab,itemCnt*sizeof(confTab_type));
+	OSA_mutexUnlock(&g_confTabSynMutex);
+}
+
+static void fetchConfTabTimeout(){
+	OSA_DBG_MSGX(" ");
+	memset(g_confTab,0xFF, sizeof(g_confTab));
+	g_confTabItemCnt = 0;
+	OSA_mutexUnlock(&g_confTabSynMutex);
+}
+
+confTab_type *getConfTab(int *itemCnt){
+	sndQueryConfTab();
+	freeTimer(g_confTabTimerID);
+	g_confTabTimerID = osa_add_timer(FETCH_TIMEOUT,fetchConfTabTimeout,NULL,TIMER_ONCE);
+	OSA_mutexLock(&g_confTabSynMutex);	
+	*itemCnt = g_confTabItemCnt;
+	return g_confTab;
+}
 
 

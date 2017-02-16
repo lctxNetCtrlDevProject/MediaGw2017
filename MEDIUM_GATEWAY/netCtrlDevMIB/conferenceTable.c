@@ -7,16 +7,18 @@
 #include <net-snmp/net-snmp-includes.h>
 #include <net-snmp/agent/net-snmp-agent-includes.h>
 #include "conferenceTable.h"
+#include "mgwParaAccess.h"
+#include "osa.h"
 
 /** Initializes the conferenceTable module */
 void
 init_conferenceTable(void)
 {
+	initConfTab();
   /* here we initialize all the tables we're planning on supporting */
     initialize_table_conferenceTable();
 }
 
-  # Determine the first/last column names
 
 /** Initialize the conferenceTable table by defining its contents and how it's structured */
 void
@@ -56,39 +58,38 @@ initialize_table_conferenceTable(void)
     /* Typical data structure for a row entry */
 struct conferenceTable_entry {
     /* Index values */
-    char confNum[NNN];
-    size_t confNum_len;
-
+    char confNum[CONF_TAB_NAME_LEN];
+	
     /* Column values */
-    char confNum[NNN];
+   
     size_t confNum_len;
-    char old_confNum[NNN];
+    char old_confNum[CONF_TAB_ITEM_LEN];
     size_t old_confNum_len;
     long partCnt;
     long old_partCnt;
-    char partNum0[NNN];
+    char partNum0[CONF_TAB_ITEM_LEN];
     size_t partNum0_len;
-    char old_partNum0[NNN];
+    char old_partNum0[CONF_TAB_ITEM_LEN];
     size_t old_partNum0_len;
-    char partNum1[NNN];
+    char partNum1[CONF_TAB_ITEM_LEN];
     size_t partNum1_len;
-    char old_partNum1[NNN];
+    char old_partNum1[CONF_TAB_ITEM_LEN];
     size_t old_partNum1_len;
-    char partNum2[NNN];
+    char partNum2[CONF_TAB_ITEM_LEN];
     size_t partNum2_len;
-    char old_partNum2[NNN];
+    char old_partNum2[CONF_TAB_ITEM_LEN];
     size_t old_partNum2_len;
-    char partNum3[NNN];
+    char partNum3[CONF_TAB_ITEM_LEN];
     size_t partNum3_len;
-    char old_partNum3[NNN];
+    char old_partNum3[CONF_TAB_ITEM_LEN];
     size_t old_partNum3_len;
-    char partNum4[NNN];
+    char partNum4[CONF_TAB_ITEM_LEN];
     size_t partNum4_len;
-    char old_partNum4[NNN];
+    char old_partNum4[CONF_TAB_ITEM_LEN];
     size_t old_partNum4_len;
-    char partNum5[NNN];
+    char partNum5[CONF_TAB_ITEM_LEN];
     size_t partNum5_len;
-    char old_partNum5[NNN];
+    char old_partNum5[CONF_TAB_ITEM_LEN];
     size_t old_partNum5_len;
 
     /* Illustrate using a simple linked list */
@@ -101,17 +102,13 @@ struct conferenceTable_entry  *conferenceTable_head;
 /* create a new row in the (unsorted) table */
 struct conferenceTable_entry *
 conferenceTable_createEntry(
-                 char* confNum,
-                 size_t confNum_len,
                 ) {
     struct conferenceTable_entry *entry;
 
     entry = SNMP_MALLOC_TYPEDEF(struct conferenceTable_entry);
     if (!entry)
         return NULL;
-
-    memcpy(entry->confNum, confNum, confNum_len);
-    entry->confNum_len = confNum_len;
+    memset(entry,0x00,sizeof(struct conferenceTable_entry));
     entry->next = conferenceTable_head;
     conferenceTable_head = entry;
     return entry;
@@ -143,6 +140,58 @@ conferenceTable_removeEntry( struct conferenceTable_entry *entry ) {
 }
 
 
+static void fillConfTabEntry(struct conferenceTable_entry *entry, confTab_type *item){
+	int i =0;	
+	char *pPartNum = NULL;
+	if(!entry || !item){
+		OSA_ERROR("Invalid Para");
+		return;
+	}
+	bcd_to_string(item->bcdConfNum,entry->confNum,CONF_NAME_LEN);
+	entry->confNum_len = strlen(entry->confNum);
+	entry->partCnt = item->partCnt;
+	
+	bcd_to_string(item->bcdPartNum1,entry->partNum1,BCD_PHONE_NUM_LEN);
+	entry->partNum1_len = strlen(entry->partNum1);
+
+	bcd_to_string(item->bcdPartNum2,entry->partNum2,BCD_PHONE_NUM_LEN);
+	entry->partNum2_len = strlen(entry->partNum2);
+
+	bcd_to_string(item->bcdPartNum3,entry->partNum3,BCD_PHONE_NUM_LEN);
+	entry->partNum3_len = strlen(entry->partNum3);
+
+	bcd_to_string(item->bcdPartNum4,entry->partNum4,BCD_PHONE_NUM_LEN);
+	entry->partNum4_len = strlen(entry->partNum4);
+
+	bcd_to_string(item->bcdPartNum5,entry->partNum5,BCD_PHONE_NUM_LEN);
+	entry->partNum5_len = strlen(entry->partNum5);
+
+}
+
+static void loadConfTab(){
+	int itemCnt = -1, i;
+	confTab_type *tab = NULL;
+	struct conferenceTable_entry *entry = NULL;
+	tab = getGZRFJTab(&itemCnt);
+	if(!tab || itemCnt <=0){
+		OSA_ERROR("Can't load Conf Table");
+		return;
+	}
+	if(conferenceTable_head == NULL){
+		for(i = 0; i < itemCnt; i++){
+			conferenceTable_createEntry();
+		}
+	}	
+	entry = conferenceTable_head;
+	i = 0;
+	while(entry){
+		fillConfTabEntry(entry,&tab[i]);
+		i++;
+		entry = entry->next;
+	}
+}
+
+
 /* Example iterator hook routines - using 'get_next' to do most of the work */
 netsnmp_variable_list *
 conferenceTable_get_first_data_point(void **my_loop_context,
@@ -150,6 +199,8 @@ conferenceTable_get_first_data_point(void **my_loop_context,
                           netsnmp_variable_list *put_index_data,
                           netsnmp_iterator_info *mydata)
 {
+    loadConfTab();
+
     *my_loop_context = conferenceTable_head;
     return conferenceTable_get_next_data_point(my_loop_context, my_data_context,
                                     put_index_data,  mydata );
@@ -187,7 +238,7 @@ conferenceTable_handler(
     netsnmp_request_info       *request;
     netsnmp_table_request_info *table_info;
     struct conferenceTable_entry          *table_entry;
-
+    int ret;
     DEBUGMSGTL(("conferenceTable:handler", "Processing request (%d)\n", reqinfo->mode));
 
     switch (reqinfo->mode) {

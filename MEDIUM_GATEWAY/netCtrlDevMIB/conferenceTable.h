@@ -12,6 +12,9 @@ Netsnmp_Node_Handler conferenceTable_handler;
 Netsnmp_First_Data_Point  conferenceTable_get_first_data_point;
 Netsnmp_Next_Data_Point   conferenceTable_get_next_data_point;
 
+#define 	CONF_TAB_NAME_LEN		4
+#define 	CONF_TAB_ITEM_LEN			20
+
 /* column number definitions for table conferenceTable */
        #define COLUMN_CONFNUM		1
        #define COLUMN_PARTCNT		2

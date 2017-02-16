@@ -150,9 +150,7 @@ static void loadZrfjTab(){
 		for(i = 0; i < itemCnt; i++){
 			zhenRFenjTable_createEntry(tab[i].zjID);
 		}
-	}
-
-	
+	}	
 	entry = zhenRFenjTable_head;
 	i = 0;
 	while(entry){
@@ -160,9 +158,6 @@ static void loadZrfjTab(){
 		i++;
 		entry = entry->next;
 	}
-	
-	
-	
 }
 
 /* Example iterator hook routines - using 'get_next' to do most of the work */

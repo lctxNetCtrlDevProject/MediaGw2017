@@ -1,6 +1,11 @@
----- g_listenFd Matches (5 in 1 files) ----
-paraInjectAgent.c (parainjectagent):int 			g_listenFd;
-paraInjectAgent.c (parainjectagent):	iRet = sendto(g_listenFd,buf,len,0,&addr,addr_len);
-paraInjectAgent.c (parainjectagent):	g_listenFd = createListenSocket();
-paraInjectAgent.c (parainjectagent):	if(g_listenFd < 0 ){
-paraInjectAgent.c (parainjectagent):		len  = recvfrom(g_listenFd, buf,sizeof(buf),0,&addr,&addr_len);
+---- gRpcSeatMngSocket Matches (10 in 1 files) ----
+MGW_lan_bus_control.c (src):int 	gRpcSeatMngSocket = 0;
+MGW_lan_bus_control.c (src):	Socket_Send(gRpcSeatMngSocket, (struct sockaddr_in*)&SocketT_834BoardIP, buf, len);
+MGW_lan_bus_control.c (src):	Socket_Send(gRpcSeatMngSocket, (struct sockaddr_in*)&SocketT_834SnmpAgent, buf, len);
+MGW_lan_bus_control.c (src):	ret = Socket_Send(gRpcSeatMngSocket, (struct sockaddr_in*)&SocketT_SeatMngIP, buf, len);
+MGW_lan_bus_control.c (src):		if((Rec_Len = recvfrom(gRpcSeatMngSocket, abuf, MAX_SOCKET_LEN, 0,
+MGW_lan_bus_control.c (src):	if ((gRpcSeatMngSocket = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+MGW_lan_bus_control.c (src):	if (DRV_ERR == bind(gRpcSeatMngSocket, (struct sockaddr *)&SocketT_834BoardIP, sizeof(SocketT_834BoardIP)))
+MGW_lan_bus_control.c (src):		close(gRpcSeatMngSocket);
+MGW_lan_bus_control.c (src):	if(gRpcSeatMngSocket)
+MGW_lan_bus_control.c (src):		close(gRpcSeatMngSocket);

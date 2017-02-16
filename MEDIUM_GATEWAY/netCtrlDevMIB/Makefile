@@ -22,9 +22,9 @@ OSA_OBJS = $(OSA_SRCS:.c=.o)
 PUBLIC_SRCS = public.c paraMng.c
 PUBLIC_OBJS = $(PUBLIC_SRCS:.c=.o)
 
-#==================ZhenRuFenJiTab===================
-ZRFJ_SRCS = mgwParaAccess.c zhenRFenjTable.c
-ZRFJ_OBJS = $(ZRFJ_SRCS:.c=.o)
+#==================mgwPara===================
+MGW_PARA_SRCS = mgwParaAccess.c zhenRFenjTable.c conferenceTable.c
+MGW_PARA_OBJS = $(MGW_PARA_SRCS:.c=.o)
 
 
 #==================main=============================
@@ -55,8 +55,8 @@ CFLAGS= -fPIC -I$(NET-SNMP-HEADFILES) -I$(OSA_INC) -I$(EXTERN_INC)
 
 all:$(TARGETS)
 
-$(TARGETS): $(OSA_OBJS) $(PUBLIC_OBJS) $(ZRFJ_OBJS) $(MAIN_OBJS)
-	$(CC) -o $(TARGETS) $(OSA_OBJS) $(PUBLIC_OBJS) $(ZRFJ_OBJS)  $(MAIN_OBJS) $(BUILDAGENTLIBS) 
+$(TARGETS): $(OSA_OBJS) $(PUBLIC_OBJS) $(MGW_PARA_OBJS) $(MAIN_OBJS)
+	$(CC) -o $(TARGETS) $(OSA_OBJS) $(PUBLIC_OBJS) $(MGW_PARA_OBJS)  $(MAIN_OBJS) $(BUILDAGENTLIBS) 
 	
 $(OSA_OBJS):$(OSA_SRCS)
 	$(CC) $(CFLAGS) -c -o $@ $(OSA_SRC_PATH)$(*F).c 	
@@ -64,7 +64,7 @@ $(OSA_OBJS):$(OSA_SRCS)
 $(PUBLIC_OBJS):$(PUBLIC_SRCS)
 	$(CC) $(CFLAGS) -c -o $@ ./$(*F).c 		
 		
-$(ZRFJ_OBJS):$(ZRFJ_SRCS)
+$(MGW_PARA_OBJS):$(MGW_PARA_SRCS)
 	$(CC) $(CFLAGS) -c -o $@ ./$(*F).c  
 	
 $(MAIN_OBJS):$(MAIN_SRCS)

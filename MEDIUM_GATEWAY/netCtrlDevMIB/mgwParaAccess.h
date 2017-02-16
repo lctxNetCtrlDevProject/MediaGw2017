@@ -6,6 +6,8 @@
 #define BCD_PHONE_NUM_LEN		10
 #define ZHENR_FENJI_ITEM_MAX	12
 
+#define CONF_NAME_LEN			2
+#define CONF_ITEM_MAX			12
 
 #pragma pack(1)
 typedef struct {
@@ -14,10 +16,27 @@ typedef struct {
 	unsigned char  bcdFenJNum[BCD_PHONE_NUM_LEN]; 
 }zhenRFJTab_type;
 
+typedef struct {
+	unsigned char bcdConfNum[CONF_NAME_LEN];
+	char			 partCnt;
+	unsigned char  bcdPartNum0[BCD_PHONE_NUM_LEN]; 
+	unsigned char  bcdPartNum1[BCD_PHONE_NUM_LEN]; 
+	unsigned char  bcdPartNum2[BCD_PHONE_NUM_LEN]; 
+	unsigned char  bcdPartNum3[BCD_PHONE_NUM_LEN]; 
+	unsigned char  bcdPartNum4[BCD_PHONE_NUM_LEN]; 
+	unsigned char  bcdPartNum5[BCD_PHONE_NUM_LEN]; 
+	
+}confTab_type;
+
+
 
 extern void initZrfjTab();
 extern zhenRFJTab_type *getGZRFJTab(int *itemCnt);
 extern void setZrfjTab(zhenRFJTab_type tab[], int itemCnt);
+
+extern void initConfTab();
+extern void setConfTab(confTab_type tab[], int itemCnt);
+extern confTab_type *getConfTab(int *itemCnt);
 
 
 #pragma pack(0)
