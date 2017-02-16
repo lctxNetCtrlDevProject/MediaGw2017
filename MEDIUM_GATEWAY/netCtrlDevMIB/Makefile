@@ -23,7 +23,7 @@ PUBLIC_SRCS = public.c paraMng.c
 PUBLIC_OBJS = $(PUBLIC_SRCS:.c=.o)
 
 #==================ZhenRuFenJiTab===================
-ZRFJ_SRCS = zhenRFenjTableAccess.c zhenRFenjTable.c
+ZRFJ_SRCS = mgwParaAccess.c zhenRFenjTable.c
 ZRFJ_OBJS = $(ZRFJ_SRCS:.c=.o)
 
 

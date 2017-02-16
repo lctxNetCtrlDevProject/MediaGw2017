@@ -1,0 +1,4 @@
+---- g_paraPduRcvFd Matches (3 in 1 files) ----
+paraMng.c (z:\work\lctx_work\netctrldev2017\code\medium_gateway\netctrldevmib):SOCKET_TYPE g_paraPduRcvFd ;			/*Rcving fd from 834 board*/
+paraMng.c (z:\work\lctx_work\netctrldev2017\code\medium_gateway\netctrldevmib):	if(g_paraPduRcvFd <=0)
+paraMng.c (z:\work\lctx_work\netctrldev2017\code\medium_gateway\netctrldevmib):	iRet = osa_udpSendData(g_paraPduRcvFd,buf,len,"127.0.0.1",SNMP_AGENT_834_PORT);

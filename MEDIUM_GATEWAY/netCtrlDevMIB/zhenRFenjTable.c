@@ -7,7 +7,7 @@
 #include <net-snmp/net-snmp-includes.h>
 #include <net-snmp/agent/net-snmp-agent-includes.h>
 #include "zhenRFenjTable.h"
-#include "zhenRFenjTableAccess.h"
+#include "mgwParaAccess.h"
 #include "osa_debug.h"
 #include "public.h"
 

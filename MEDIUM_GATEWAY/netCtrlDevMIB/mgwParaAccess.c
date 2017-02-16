@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include "zhenRFenjTableAccess.h"
+#include "mgwParaAccess.h"
 #include "paraMng.h"
 #include "osa.h"
 

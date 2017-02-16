@@ -5,7 +5,7 @@
 */
 #include <errno.h>
 #include "osa.h"
-#include "zhenRFenjTableAccess.h"
+#include "mgwParaAccess.h"
 #include "interior_protocol.h"
 #include "public.h"
 

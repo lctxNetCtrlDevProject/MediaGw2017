@@ -1,6 +1,6 @@
 
-#ifndef __ZHEN_R_FEN_J_TABLE_ACCESS_H__
-#define __ZHEN_R_FEN_J_TABLE_ACCESS_H__
+#ifndef __MGW_PARA_ACCESS_H__
+#define __MGW_PARA_ACCESS_H__
 
 
 #define BCD_PHONE_NUM_LEN		10
