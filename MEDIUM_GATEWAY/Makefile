@@ -15,7 +15,7 @@ TARGET_PROG = $(TOP_DIR)/$(TARGET)
 empty := 
 SPACE := $(empty) $(empty)
 #===========================================================
-
+$(shell if [ -f $(TARGET_TEMPDIR) ]; then echo "exist"; else mkdir -p target; fi;)
 
 #===================target PPC==============================
 ifeq ($(TARGETCPU),ppc)
