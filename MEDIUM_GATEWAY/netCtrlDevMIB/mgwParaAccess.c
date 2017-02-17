@@ -79,15 +79,18 @@ void initConfTab(){
 	OSA_mutexLock(&g_confTabSynMutex);		/*decrease mutex to 0*/
 }
 
+void setConfTabItemCnt(int cnt){
 
-void setConfTab(confTab_type tab[], int itemCnt){
-	if(!tab || itemCnt <=0 )
-		return;
 	freeTimer(g_confTabTimerID);
-	
-	g_confTabItemCnt = itemCnt;
-	memcpy(g_confTab,tab,itemCnt*sizeof(confTab_type));
+	g_confTabItemCnt = cnt;
 	OSA_mutexUnlock(&g_confTabSynMutex);
+}
+
+void setConfTabItem(confTab_type *item, int i){
+	if(!item )
+		return;
+	//dispBuf(item,CONF_NAME_LEN + 1 + BCD_PHONE_NUM_LEN*(item->partCnt),__func__);
+	memcpy(&g_confTab[i],item,CONF_NAME_LEN + 1 + BCD_PHONE_NUM_LEN*(item->partCnt));
 }
 
 static void fetchConfTabTimeout(){

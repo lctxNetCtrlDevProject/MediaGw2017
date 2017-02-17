@@ -124,6 +124,11 @@ static void handle834Para(unsigned char *buf, int len){
 			int itemCnt = buf[3];
 			int i =0;
 			confTab_type *item = (confTab_type *)&buf[4];
+			for(i = 0; i < itemCnt; i++){
+				setConfTabItem(item,i);
+				item += CONF_NAME_LEN + 1 + BCD_PHONE_NUM_LEN * (item->partCnt);
+			}
+			setConfTabItemCnt(itemCnt);
 			
 		}break;
 		default:{

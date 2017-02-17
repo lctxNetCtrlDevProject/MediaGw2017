@@ -147,9 +147,14 @@ static void fillConfTabEntry(struct conferenceTable_entry *entry, confTab_type *
 		OSA_ERROR("Invalid Para");
 		return;
 	}
+	//dispBuf(item,sizeof(confTab_type),__func__);
 	bcd_to_string(item->bcdConfNum,entry->confNum,CONF_NAME_LEN);
 	entry->confNum_len = strlen(entry->confNum);
 	entry->partCnt = item->partCnt;
+	
+	bcd_to_string(item->bcdPartNum0,entry->partNum0,BCD_PHONE_NUM_LEN);
+		entry->partNum0_len = strlen(entry->partNum0);
+
 	
 	bcd_to_string(item->bcdPartNum1,entry->partNum1,BCD_PHONE_NUM_LEN);
 	entry->partNum1_len = strlen(entry->partNum1);
@@ -172,7 +177,7 @@ static void loadConfTab(){
 	int itemCnt = -1, i;
 	confTab_type *tab = NULL;
 	struct conferenceTable_entry *entry = NULL;
-	tab = getGZRFJTab(&itemCnt);
+	tab = getConfTab(&itemCnt);
 	if(!tab || itemCnt <=0){
 		OSA_ERROR("Can't load Conf Table");
 		return;

@@ -35,7 +35,8 @@ extern zhenRFJTab_type *getGZRFJTab(int *itemCnt);
 extern void setZrfjTab(zhenRFJTab_type tab[], int itemCnt);
 
 extern void initConfTab();
-extern void setConfTab(confTab_type tab[], int itemCnt);
+extern void setConfTabItem(confTab_type *item, int i);
+extern void setConfTabItemCnt(int cnt);
 extern confTab_type *getConfTab(int *itemCnt);
 
 

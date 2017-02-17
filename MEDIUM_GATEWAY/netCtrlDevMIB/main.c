@@ -19,6 +19,7 @@
 #include <net-snmp/agent/net-snmp-agent-includes.h>
 #include <signal.h>
 
+#include "conferenceTable.h"
 #include "zhenRFenjTable.h"
 #include "paraMng.h"
 #include "osa.h"
@@ -27,10 +28,13 @@ static int keep_running;
 
 void init_netCtrlDevMIB(){
 	osa_init_timer(20);
+
+
+	init_zhenRFenjTable();	
+	init_conferenceTable();
+	
 	/*Start thread of Rcving pdu from board*/
 	startAgentRcvPduThr();
-
-	init_zhenRFenjTable();
 
 }
 

@@ -21,7 +21,7 @@ int bcd_to_string(char *bcd, char *strDst, int size)
 {
 	int i = 0;
 	char num = 0;
-	dispBuf(bcd,size,__func__);
+	//dispBuf(bcd,size,__func__);
 	for (i = 0; i < size; ++i) {
 		num = bcd[i] & 0xf;
 		if (0xf == num) {
