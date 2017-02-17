@@ -13,7 +13,7 @@
 #include "osa.h"
 
 /**************Macro**************************/
-#define FETCH_TIMEOUT		1*10		/* fetching time out 5s*/
+#define FETCH_TIMEOUT		5		/* fetching time out 500s*/
 
 /************Global Variablies*******************/
 
@@ -29,6 +29,18 @@ int 			g_confTabItemCnt = 0;
 OSA_MutexHndl    g_confTabSynMutex;		/*mutex using to syn the query & response*/
 int			      g_confTabTimerID;
 
+/*--WorkMode---*/
+int g_workMode = 2;	/*0, paofang; 2,zhuangjai;3,xiweikuozhan*/
+OSA_MutexHndl    g_workModSynMutex;		/*mutex using to syn the query & response*/
+int			      g_workModTimerID;
+
+/*--GportPara---*/
+int g_GportMode =0;	/*0,kzxw_2M; 1,kzxw_1M, 2,kzxw_162K,4,kss*/
+OSA_MutexHndl    g_gPortModSynMutex;		/*mutex using to syn the query & response*/
+int			      g_gPortModTimerID;
+
+
+/*********************Funcs*****************/
 static void freeTimer(int timerID){
 	if(timerID != -1){
 		osa_del_timer(timerID);
@@ -109,4 +121,56 @@ confTab_type *getConfTab(int *itemCnt){
 	return g_confTab;
 }
 
+void initWorkMode(){
+	g_workMode = 2;
+	OSA_mutexCreate(&g_workModSynMutex);
+	OSA_mutexLock(&g_workModSynMutex);		/*decrease mutex to 0*/
+}
+
+void setWorkMode(int mode){
+	g_workMode = mode;
+	OSA_mutexUnlock(&g_workModSynMutex);
+}
+
+static void fetchWorkModTimeout(){
+	OSA_DBG_MSGX(" ");
+	g_workMode = -1;
+	OSA_mutexUnlock(&g_workModSynMutex);
+}
+
+int getWorkMode(){
+	sndQueryworkMode();
+	freeTimer(g_workModTimerID);
+	g_workModTimerID = osa_add_timer(FETCH_TIMEOUT,fetchWorkModTimeout,NULL,TIMER_ONCE);
+	OSA_mutexLock(&g_workModSynMutex);	
+	return g_workMode;
+}
+
+
+
+void initGPortMode(){
+	g_GportMode= 0;
+	OSA_mutexCreate(&g_gPortModSynMutex);
+	OSA_mutexLock(&g_gPortModSynMutex);		/*decrease mutex to 0*/
+}
+
+
+void setGPortMode(int mode){
+	g_GportMode = mode;
+	OSA_mutexUnlock(&g_gPortModSynMutex);
+}
+
+static void fetchGPortModTimeout(){
+	OSA_DBG_MSGX(" ");
+	g_GportMode = -1;
+	OSA_mutexUnlock(&g_gPortModSynMutex);
+}
+
+int getGPortMode(){
+	sndQueryGPortMode();
+	freeTimer(g_gPortModTimerID);
+	g_gPortModTimerID = osa_add_timer(FETCH_TIMEOUT,fetchGPortModTimeout,NULL,TIMER_ONCE);
+	OSA_mutexLock(&g_gPortModSynMutex);	
+	return g_GportMode;
+}
 

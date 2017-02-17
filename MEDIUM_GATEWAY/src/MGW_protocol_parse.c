@@ -4574,7 +4574,6 @@ int32 Board_Mng_834Proc(uint8 *buf, int32 len)
 			{
 				return DRV_OK;
 			}
-			
 			if(3 == msg->header.data_len)
 			{
 				i = 0;

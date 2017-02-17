@@ -3,6 +3,9 @@
 
 
 extern void sndQueryZrfjTab();
+extern void sndQueryworkMode();
+extern void sndQueryworkMode();
+extern void sndQueryGPortMode();
 
 extern int startAgentRcvPduThr();
 

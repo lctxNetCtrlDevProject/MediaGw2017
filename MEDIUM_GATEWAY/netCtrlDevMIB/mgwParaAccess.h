@@ -40,6 +40,14 @@ extern void setConfTabItemCnt(int cnt);
 extern confTab_type *getConfTab(int *itemCnt);
 
 
+extern void initWorkMode();
+extern void setWorkMode(int mode);
+extern int getWorkMode();
+
+extern void initGPortMode();
+extern void setGPortMode(int mode);
+extern int getGPortMode();
+
 #pragma pack(0)
 
 #endif

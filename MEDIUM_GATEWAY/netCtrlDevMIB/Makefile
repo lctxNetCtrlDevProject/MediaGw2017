@@ -23,7 +23,7 @@ PUBLIC_SRCS = public.c paraMng.c
 PUBLIC_OBJS = $(PUBLIC_SRCS:.c=.o)
 
 #==================mgwPara===================
-MGW_PARA_SRCS = mgwParaAccess.c zhenRFenjTable.c conferenceTable.c
+MGW_PARA_SRCS = mgwParaAccess.c zhenRFenjTable.c conferenceTable.c mediaGW.c
 MGW_PARA_OBJS = $(MGW_PARA_SRCS:.c=.o)
 
 

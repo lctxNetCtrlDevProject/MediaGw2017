@@ -82,6 +82,7 @@ int  sndPktTo834Board(char *buf, int len){
 	msg.header.msg_type = BAOWEN_MSG_TYPE_CMD;
 	msg.header.data_len = len;
 	memcpy(msg.body,buf,len);
+	dispBuf((unsigned char *)&msg,sizeof(ST_SEAT_MNG_HEADER) + len,__func__);
 	return sendBufTo834Board((unsigned char *)&msg,sizeof(ST_SEAT_MNG_HEADER) + len);
 }
 
@@ -101,6 +102,27 @@ void sndQueryConfTab(){
 	sndPktTo834Board(buf,sizeof(buf));
 }
 
+void sndQueryworkMode(){
+	char buf[4];
+	short *len = (short *)&buf[1];
+	OSA_DBG_MSG("%s_%d",__func__,__LINE__);
+	memset(buf,0x00,sizeof(buf));
+	buf[0] = MSG_834_WORKMODE_GET;
+	*len = htons(1);
+	sndPktTo834Board(buf,sizeof(buf));
+}
+void sndQueryGPortMode(){
+	char buf[4];
+	short *len = (short *)&buf[1];
+	OSA_DBG_MSG("%s_%d",__func__,__LINE__);
+	memset(buf,0x00,sizeof(buf));
+	buf[0] = MSG_834_GPORT_MODE_GET;
+	*len = htons(1);
+	buf[3] = 6;
+	sndPktTo834Board(buf,sizeof(buf));
+}
+
+
 
 static void handle716Para(unsigned char *buf, int len){
 }
@@ -117,8 +139,10 @@ static void handle834Para(unsigned char *buf, int len){
 			setZrfjTab(item,itemCnt);
 		}break;
 		case MSG_834_GPORT_MODE_GET_ACK:{
+			setGPortMode(buf[5]);
 		}break;
 		case MSG_834_WORKMODE_GET_ACK:{
+			setWorkMode(buf[3]);
 		}break;
 		case MSG_834_GROUP_ID_GET_ACK:{
 			int itemCnt = buf[3];

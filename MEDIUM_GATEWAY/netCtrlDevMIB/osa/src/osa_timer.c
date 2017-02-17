@@ -283,10 +283,10 @@ static void sig_func(int signo)
 		
         stTimeout.tv_sec = 0 ;
         stTimeout.tv_usec = 100*1000;	/*timeout 100ms*/
-		//iRet = select(0, &fdRead, NULL, NULL, &stTimeout) ;
-		if((iRet = select(0, &fdRead, NULL, NULL, NULL))== SOCKET_ERROR){
+	iRet = select(0, &fdRead, NULL, NULL, &stTimeout) ;
+		/*if((iRet = select(0, &fdRead, NULL, NULL, NULL))== SOCKET_ERROR){
 			OSA_ERROR("Select Fail Errno=%d",errno);
-		}
+		}*/
         if (0 == iRet)//³¬Ê±
         {
         	for (i=0;i<MAX_TIMER_NUM;i++)
