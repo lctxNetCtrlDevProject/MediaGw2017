@@ -556,8 +556,8 @@ int main(int argc, char *argv[])
 	{
 		struct rlimit l;
 		memset(&l, 0, sizeof(l));
-		l.rlim_cur = RLIM_INFINITY;
-		l.rlim_max = RLIM_INFINITY;
+		//l.rlim_cur = RLIM_INFINITY;
+		//l.rlim_max = RLIM_INFINITY;
 		if (setrlimit(RLIMIT_CORE, &l)) {
 			fprintf(stderr,"Unable to disable core size resource limit: %s\n", strerror(errno));
 		}
