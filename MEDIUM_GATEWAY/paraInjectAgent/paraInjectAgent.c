@@ -292,6 +292,7 @@ void handleClrAllPara(PARA_INJECT_CLR_ALL_PARA_PKT *pPkt){
 void resetRcving(){
 	if(g_pParaBuf)
 		free(g_pParaBuf);
+	g_pParaBuf = NULL;
 	g_paraLen = 0;
 }
 void handleSetParaFileLen(PARA_INJECT_SET_PARA_FILE_LEN_PKT *pPkt){

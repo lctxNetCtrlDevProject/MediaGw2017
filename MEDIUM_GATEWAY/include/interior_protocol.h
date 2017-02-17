@@ -39,6 +39,11 @@ enum{
 	BAOWEN_MSG_TYPE_CMD = 0x01,
 };
 
+enum{
+	RAY_MSG_TYPE_SET = 0xd1,
+};
+
+
 enum
 {
 	INT_FRAME_TYPE_DATA = 0x00,	/*สýพÝึก*/

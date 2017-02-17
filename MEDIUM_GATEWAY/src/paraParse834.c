@@ -28,7 +28,7 @@ static void dump_buf(unsigned char* str, const unsigned char* buf,int count)
 int wkmode_cb(unsigned char *buf, int len) {
 	int8 setMode = -1;
 	ST_SEAT_MNG_MSG msg;
-	dump_buf(__func__, buf, len);
+	dump_buf(__func__, buf, 1);
 
 	setMode = buf[0];
 	/*send mng pdu to notify 834board to do the configuration*/
@@ -53,7 +53,7 @@ int mgwpar_cb(unsigned char *buf, int len) {
 	unsigned char *pFenJi = NULL, *pDianTai = NULL;
 	int cnt = -1, i =0;
 
-	dump_buf(__func__, buf, len);
+
 
 	/*Configure ZhenRuFenJi*/
 	memset(&msg, 0x00,sizeof(msg));
@@ -68,6 +68,7 @@ int mgwpar_cb(unsigned char *buf, int len) {
 	msg.body[2] = 12;
 
 	cnt = pFenJi[0];
+	dump_buf(__func__, buf, 1 + cnt * 2);
 	for(i = 0; i < cnt; i++){
 		msg.body[3] = pFenJi[1+i];
 		msg.body[4] = pFenJi[1+i+1];
@@ -99,12 +100,14 @@ int mgwcof_cb(unsigned char *buf, int len) {
 	cntConf = buf[0];
 	if(cntConf > 0)
 		pConf = &buf[1];
+	DBG("cntConf = %d\n", cntConf);
 	for(i = 0; i < cntConf; i++){
 		cntMebs = pConf[2];
 		msg.header.data_len = 3 + 3 + 10 * cntMebs ;
 		msg.body[0] = MSG_834_GROUP_ID_ADD;
 		msg.body[1] = 0x00;
 		msg.body[2] = 3+10*cntMebs;
+		dump_buf(__func__, pConf, 3 + 10 * cntMebs);
 		memcpy(&msg.body[3],pConf,3+10*cntMebs);
 		Board_Mng_SendTo_834(&msg, sizeof(ST_SEAT_MNG_HEADER) + msg.header.data_len);
 	}
@@ -114,7 +117,7 @@ int mgwcof_cb(unsigned char *buf, int len) {
 int compar_cb(unsigned char *buf, int len) {
 	int8 gMod = -1;
 	ST_SEAT_MNG_MSG msg;
-	dump_buf(__func__, buf, len);
+	dump_buf(__func__, buf, 1);
 
 	gMod = buf[0];
 	/*send mng pdu to notify 834board to do the configuration*/

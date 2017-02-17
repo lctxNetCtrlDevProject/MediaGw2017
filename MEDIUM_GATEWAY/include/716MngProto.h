@@ -10,7 +10,7 @@ typedef enum{
 	ZW_INFO_TYPE_IPINTF_ROUTE_CFG = 0x81,
 	ZW_INFO_TYPE_IP_AS_CFG = 0x87,
 
-	ZW_INFO_TYPE_FIBR_STA_CFG  = 0xa2,
+	ZW_INFO_TYPE_FIBR_STA_CFG  = 0xa1,
 	ZW_INFO_TYPE_FIBR_INTF_CFG = 0xa3,
 
 	ZW_INFO_TYPE_ST_RT_CFG = 0xa7,
@@ -285,7 +285,6 @@ typedef struct
 
 typedef struct
 {
-	ZwMngHeader header;
 	uint8 ope;
 	uint8 cnt;
 	uint8 ywld;
@@ -298,7 +297,7 @@ typedef struct
 	uint8 port2;
 	uint8 chan2;
 	uint8 eof;
-}MNG_ZW_FIBR_YW_CFG_PKT;
+}RAY_FIBR_YW_CFG_PKT;
 
 
 

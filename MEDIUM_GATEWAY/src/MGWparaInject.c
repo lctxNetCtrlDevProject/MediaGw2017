@@ -53,7 +53,6 @@ extern int meetpa_cb(unsigned char *buf, int len);
 extern int linepa_cb(unsigned char *buf, int len);
 extern int tdhjys_cb(unsigned char *buf, int len);
 extern int raintf_cb(unsigned char *buf, int len);
-extern int ippara_cb(unsigned char *buf, int len);
 extern int ipintf_cb(unsigned char *buf, int len);
 extern int frppar_cb(unsigned char *buf, int len);
 extern int tirppa_cb(unsigned char *buf, int len);
@@ -108,7 +107,6 @@ tag tagList[] = {
 	{"tdhjys", tdhjys_cb},
 	{"qlintf", qlintf_cb},
 	{"raintf", raintf_cb},
-	{"ippara", ippara_cb},
 	{"ipintf", ipintf_cb},
 	{"frppar", frppar_cb},
 	{"tirppa", tirppa_cb},
