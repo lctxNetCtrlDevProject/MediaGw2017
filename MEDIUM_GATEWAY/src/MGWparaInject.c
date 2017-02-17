@@ -142,11 +142,7 @@ int ycport_cb(unsigned char *buf, int len)
 int  paraFileProcFun(unsigned char *buf, int len){
 
 	int i, j;
-	int n = -1;
 	int ret = 0;
-	//unsigned char *new_buf = NULL;
-	unsigned char *old_buf = buf;
-	//unsigned char *end_buf = buf + len;
 
 	//how to deal with buffer size > len
 	DBG(" process para inject files");
@@ -155,7 +151,7 @@ int  paraFileProcFun(unsigned char *buf, int len){
 	{
 		if (i%20 == 0)
 			printf("\n");
-		printf("0x%x ", old_buf[i]);
+		printf("0x%x ", buf[i]);
 	}
 	printf("\n");
 
@@ -163,12 +159,11 @@ int  paraFileProcFun(unsigned char *buf, int len){
 	**Only in these case, some workmode specific paras can be configured
 	*/
 
-
 	/*then Config*/
 	for (i = 0; strlen(tagList[i].name); i++)
 	{
 		for (j = 0; j < len; j++) {
-			if (old_buf[j] >= 97 && old_buf[j] <= 122) {
+			if (buf[j] >= 97 && buf[j] <= 122) {
 				ret = memcmp(&buf[j], &tagList[i], 6);
 				if (ret == 0) { //find tag
 					ret = tagList[i].callback(&buf[j]+6, 0);
@@ -189,7 +184,12 @@ int  paraFileProcFun(unsigned char *buf, int len){
 		}
 	}
 
-#if 0		
+#if 0	
+		 int n = -1;
+		 unsigned char *new_buf = NULL;
+		 unsigned char *old_buf = buf;
+		 unsigned char *end_buf = buf + len;
+
 		 new_buf = strstr(old_buf, tagList[i].name);
 		 if (new_buf)
 		 {
