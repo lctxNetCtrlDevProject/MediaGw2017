@@ -374,9 +374,10 @@ int Board_Mng_Set_User_Num(uint8 *pUsrNum, uint16 SecurityNum)
 	ZxCmd.CmdId = ZW_USR_NUM_SPEC;	
 	ZxCmd.OpMode = ZW_USR_REG;
 	ZxCmd.MsgLen = 30;
-	
+	ZxCmd.Ack = 1;
 	memcpy(ZxCmd.UserNum,pUsrNum,4);
 	ZxCmd.SecurityNum = SecurityNum;
+	ZxCmd.ChannelId = 1;//此项必须有
 	dump_buf(__func__, ZxCmd.UserNum, 4);
 
 	memcpy(Regmsg.body, &ZxCmd, sizeof(ZxCmd));
@@ -393,7 +394,8 @@ int Board_Mng_Set_User_Num(uint8 *pUsrNum, uint16 SecurityNum)
 	Board_Mng_SendTo_716((uint8 *)&Regmsg, len);
 
 	printf("%s , SecurityNum=0x%x\n", __func__, SecurityNum);
-	
+
+	return 0;
 }
 
 /*usr num configuration*/
@@ -604,17 +606,19 @@ int Board_Mng_Meet_Cfg(uint8 *pConfNum, uint8 *pMebs, int mebsCnt)
 	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
 
 	ZxCmd.header.InfoType = ZW_INFO_TYPE_CONF_CFG;
-	ZxCmd.header.CmdLen = 137;
+	ZxCmd.header.CmdLen = 9 + 4*mebsCnt;
 	ZxCmd.CmdId = ZW_MEET_NUM_SPEC;	
 	ZxCmd.OpMode = ZW_USR_REG;
-	ZxCmd.MsgLen = 134;
+	ZxCmd.MsgLen = 6 + mebsCnt * 4;
 	
 	memcpy(ZxCmd.confNum,pConfNum,2);
 	ZxCmd.mebsCnt= mebsCnt;
 	memset(ZxCmd.mebs,0xFF,4*32);
 	memcpy(ZxCmd.mebs, pMebs, 4*mebsCnt);
 
-	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
+
+	DBG("\r\n>> %s, len=%d\n", __func__, sizeof(ZxCmd.header)+ZxCmd.header.CmdLen);
+	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd.header)+ZxCmd.header.CmdLen);
 }
 
 int meetpa_cb(unsigned char *buf, int len) {
@@ -888,10 +892,21 @@ int Board_Mng_Lycff_Cfg(
 	return 0;
 }
 
-int lycfbp_cb(unsigned char *buf, int len) {
-	dump_buf(__func__, buf, len);
+int lycfbp_cb(unsigned char *buf, int len) 
+{
+	int cnt, i;
+	uint8 *pbuf;
 
-	Board_Mng_Lycff_Cfg(buf[0],buf[1],buf[2],buf[3],buf[4],buf[5],buf[6], ntohl(*(uint32 *)(buf+7)));
+	cnt = buf[0];
+	pbuf = &buf[1];
+	dump_buf(__func__, buf, 1);
+
+	for (i = 0; i < cnt; i++) {
+		dump_buf(__func__, pbuf, 11);
+		Board_Mng_Lycff_Cfg(pbuf[0],pbuf[1],pbuf[2],pbuf[3],pbuf[4],pbuf[5],pbuf[6], ntohl(*(uint32 *)(pbuf+7)));
+		pbuf += 11;
+	}
+
 	return 0;
 }
 

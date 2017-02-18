@@ -164,7 +164,7 @@ typedef struct
 	uint8 MsgLen;
 	uint8 Ack;
 	uint16 Index;
-	uint8  confNum[4];
+	uint8  confNum[2];
 	uint8  mebsCnt;
 	uint8  mebs[4*32];
 
