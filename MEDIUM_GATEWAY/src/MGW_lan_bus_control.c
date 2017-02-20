@@ -232,6 +232,7 @@ int32 RpcSeatMng_Default_SendTo_Seat(uint8 *buf, int32 len)
 		}
 		printf("\r\n");
 	}
+	printf("\r\n ---------%s_%d----------- =%d \r\n",__func__,__LINE__,gRpcSeatMng_default_Socket);
 
 	ret = Socket_Send(gRpcSeatMng_default_Socket, (struct sockaddr_in*)&SocketT_default_SeatMngIP, buf, len);
 	if(DRV_ERR == ret)
@@ -986,10 +987,6 @@ void Board_716_Mng_RxThread(void)
 					/* 发送给席位 */
 					msg.header.dst_addr = BAOWEN_ADDR_TYPE_834_PC;
 					RpcSeatMng_SendTo_Seat((uint8 *)&msg, sizeof(ST_SEAT_MNG_HEADER) + msg.header.data_len);
-					if(1 == Param_update.ip_addr_default_flg)
-					{
-						RpcSeatMng_Default_SendTo_Seat((uint8 *)&msg, sizeof(ST_SEAT_MNG_HEADER) + msg.header.data_len);
-					}
 					
 					/* 炮防模式下,键显由834开发，查询整机模式和K口模式发送给显示板 */
 					msg.header.dst_addr = BAOWEN_ADDR_TYPE_834_DIS_BOARD;
@@ -1171,10 +1168,6 @@ void Board_716_Ray_Mng_RxThread(void)
 			{
 				RpcSeatMng_SendTo_Seat(abuf, Rec_Len);
 				
-				if(1 == Param_update.ip_addr_default_flg)
-				{
-					RpcSeatMng_Default_SendTo_Seat(abuf, Rec_Len);
-				}
 			}
 				
 			switch(rcv->header.msg_type)
@@ -1195,10 +1188,7 @@ void Board_716_Ray_Mng_RxThread(void)
 					}
 
 					RpcSeatMng_SendTo_Seat((uint8 *)&msg, sizeof(ST_SEAT_MNG_HEADER) + msg.header.data_len);					
-					if(1 == Param_update.ip_addr_default_flg)
-					{
-						RpcSeatMng_Default_SendTo_Seat((uint8 *)&msg, sizeof(ST_SEAT_MNG_HEADER) + msg.header.data_len);
-					}
+					
 					break;				
 				default:
 					break;
@@ -1292,10 +1282,7 @@ void Board_50_Mng_RxThread(void)
 
 				/* 转发给PC竞标网管软件 */
 				RpcSeatMng_SendTo_Seat(abuf, Rec_Len);
-				if(1 == Param_update.ip_addr_default_flg)
-				{
-					RpcSeatMng_Default_SendTo_Seat(abuf, Rec_Len);
-				}
+				
 			#else
 				/* 解析专线注册和注销响应消息 */
 				Board_Mng_ZhuanXianAckMsgProc(abuf, Rec_Len);

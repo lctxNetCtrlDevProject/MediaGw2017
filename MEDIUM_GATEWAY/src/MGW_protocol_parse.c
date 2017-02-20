@@ -4611,10 +4611,7 @@ int32 Board_Mng_834Proc(uint8 *buf, int32 len)
 	{
 		send.header.dst_addr = BAOWEN_ADDR_TYPE_834_PC;
 		RpcSeatMng_SendTo_Seat((uint8 *)&send, sizeof(ST_SEAT_MNG_HEADER) + send.header.data_len);
-		if(1 == Param_update.ip_addr_default_flg)
-		{
-			RpcSeatMng_Default_SendTo_Seat((uint8 *)&send, sizeof(ST_SEAT_MNG_HEADER) + send.header.data_len);
-		}
+
 		
 		/* 炮防模式下,键显由834开发，查询整机模式和K口模式发送给显示板 */
 		send.header.dst_addr = BAOWEN_ADDR_TYPE_834_DIS_BOARD;
@@ -4725,10 +4722,7 @@ int32 Board_Mng_RxFrom50Proc(uint8 *buf, int32 len)
 	/* 发送给PC网管软件 */
 	send.header.dst_addr = BAOWEN_ADDR_TYPE_834_PC;
 	RpcSeatMng_SendTo_Seat((uint8 *)&send, sizeof(ST_SEAT_MNG_HEADER) + send.header.data_len);
-	if(1 == Param_update.ip_addr_default_flg)
-	{
-		RpcSeatMng_Default_SendTo_Seat((uint8 *)&send, sizeof(ST_SEAT_MNG_HEADER) + send.header.data_len);
-	}
+
 	/* 修改目的地址发给键显板 */
 	send.header.dst_addr = BAOWEN_ADDR_TYPE_834_DIS_BOARD;
 	Board_Mng_SendTo_Dis((uint8 *)&send, sizeof(ST_SEAT_MNG_HEADER) + send.header.data_len);	

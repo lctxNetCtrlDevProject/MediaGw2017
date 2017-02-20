@@ -125,12 +125,13 @@ void sndQueryGPortMode(){
 
 
 static void handle716Para(unsigned char *buf, int len){
+	dispBuf(buf,len,__func__);
 }
 static void handle834Para(unsigned char *buf, int len){
 
 	unsigned char cmd = buf[0];
 	OSA_DBG_MSGX("cmd =%x",cmd);
-	dispBuf(buf,len,__func__);
+	//dispBuf(buf,len,__func__);
 	short msgLen =  ntohs(*(short *)(&buf[1]));
 	switch(cmd){
 		case MSG_834_ZHENRUFENJI_GET_ACK:{

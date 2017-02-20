@@ -633,11 +633,7 @@ int main(int argc, char *argv[])
 	Board_50_Mng_Socket_init();
 	RpcDisplayMng_Zhuangjia_From_dis_Socket_init();
 	RpcDisplayMng_from_716_Socket_init();	
-	if(1 == Param_update.ip_addr_default_flg)
-	{
-		RpcSeatMng_Default_Socket_init();
-	}	
-	
+
 	while(1)
 	{
 		if(inc_sched_runq(con) == 0)
@@ -760,12 +756,8 @@ int main(int argc, char *argv[])
 	ParaInject();
 	//testCksum();
 	//Board_Mng_Set_Inf_Speed(1, 2);
-
-
-	if(1 == Param_update.ip_addr_default_flg)
-	{
-		inc_pthread_create(&rpcSeatMngDefaultThrdId,NULL,(void *)RpcSeatMng_Default_RxThread, NULL);
-	}			
+	// here, we bind *:30006 in RpcSeatMng_RxThread. so , this one do not need RpcSeatMng_Default_RxThread
+	//by -Andy-wei.hou 2017.02.20
 
 	inc_pthread_create(&thread_monitor,NULL,do_monitor,NULL);
 
