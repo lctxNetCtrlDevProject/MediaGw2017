@@ -62,6 +62,26 @@ static struct io_context	*rtp_ioc = NULL;
 char	flag_dump = DUMP_CLOSE;
 static char rawdata[EXTMAXDATASIZE];
 
+int32 Board_Mng_SendTo_Display(uint8 *buf, int32 len)
+{
+	int i = 0;
+
+	if(flag_dump == DUMP_OPEN)
+	{
+		printf("%s\r\n", __func__);
+		for(i = 0; i < len; i++)
+		{
+			printf("%02x:", buf[i]);
+		}
+		printf("\r\n");
+	}
+
+	Socket_Send(gRpcDisSocket_zhuangjia, &SocketT_DisPlayIP_zhuangjia,buf, len);
+		
+	
+	return DRV_OK;
+}
+
 int32 Board_Mng_SendTo_834(uint8 *buf, int32 len)
 {
 	int i = 0;
@@ -714,6 +734,7 @@ int32 RpcDisplayMng_from_716_Socket_init(void)
 	/* don't set remote socket, dynaic config  */
 	memset(&my_addr, 0x00, sizeof(my_addr));
 
+	/*¼üÏÔ°åµÄIPºÍ¶Ë¿ÚºÅ*/
 	SocketT_DisPlayIP_zhuangjia.sin_family = AF_INET;
 	SocketT_DisPlayIP_zhuangjia.sin_addr.s_addr = htonl(inet_addr(get_config_var_str(config_cfg,"DEFAULT_DISPLAY_IP")));
 	SocketT_DisPlayIP_zhuangjia.sin_port = htonl(50721);

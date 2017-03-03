@@ -310,7 +310,6 @@ typedef struct
 	unsigned char	body[MAXSCUPROSIZE];
 }__attribute__ ((packed)) ST_SEAT_MNG_MSG;
 
-
 typedef struct
 {
 	unsigned char		msg_type;	/*协议类型，写为1*/
@@ -339,6 +338,17 @@ typedef struct _PC_SEM
 	uint8 Data[MAXSCUPROSIZE];
 	uint16 CheckSum;//校验码	
 }__attribute__((packed)) ST_PC_SEM;
+
+typedef struct
+{
+	uint8 header;
+	uint16 total_len;
+	uint8 cmd;
+	uint8 type;
+	uint8 data_len;
+	unsigned char	body[16];
+}__attribute__ ((packed)) ST_DISPLAY_MNG_MSG;
+
 
 /*==========================管理维护消息============================*/
 

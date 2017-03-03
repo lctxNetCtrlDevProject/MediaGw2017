@@ -564,7 +564,6 @@ int main(int argc, char *argv[])
 	}
 	
 	printf("Z043 compile at %s, %s\r\n", __DATE__, __TIME__);	
-	printf("furong+++++++++++\n");
 
 	if (DRV_OK != init_config(&mgw_cfg, MGW_FILE))
 	{

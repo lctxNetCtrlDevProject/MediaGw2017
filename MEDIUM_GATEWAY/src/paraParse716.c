@@ -86,7 +86,7 @@ int Board_Mng_716_Set_Dev_Id(uint8 DevType, uint16 DevId)
 	
 	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
 
-	printf("%s DevType=0x%x, DevId=0x%2x\n", __func__, DevType, DevId);
+	//printf("%s DevType=0x%x, DevId=0x%2x\n", __func__, DevType, DevId);
 	
 	return DRV_OK;
 }
@@ -103,7 +103,7 @@ int Board_Mng_716_Set_Army_Id(uint16 Id)
 	ZxCmd.ArmyId = htons(Id);
 	
 	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
-	printf("%s Id=0x%x\n", __func__, Id);
+	//printf("%s Id=0x%x\n", __func__, Id);
 	
 	return DRV_OK;
 }
@@ -121,7 +121,7 @@ int Board_Mng_716_Set_Num_Len(uint8 NumLen)
 	
 	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
 
-	printf("%s NumLen=0x%x\n", __func__, NumLen);
+	//printf("%s NumLen=0x%x\n", __func__, NumLen);
 	
 	return DRV_OK;
 }
@@ -139,43 +139,28 @@ int Board_Mng_716_Set_Speech_Encode(uint8 mode)
 	
 	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
 
-	printf("%s mode=0x%x\n", __func__, mode);
+	//printf("%s mode=0x%x\n", __func__, mode);
 	
 	return DRV_OK;
-}
-
-int Board_Mng_IPAs_Cfg(uint32 asNum)
-{
-	MNG_ZW_IP_AS_CFG_PKT ZxCmd;
-	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
-
-	ZxCmd.header.InfoType = ZW_INFO_TYPE_IP_AS_CFG;
-	ZxCmd.header.CmdLen = 4;
-	ZxCmd.asNum = htonl(asNum);
-	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
-	return 0;
 }
 
 /*configure devType, devId, armyId, phoneLen,audioCodecType*/
 int zwjrpa_cb(unsigned char *buf, int len) {
 	uint16 DevId, ArmyId;
 	uint8 DevType, NumLen, SpeechEncode;
-	uint32 asNum;
 	
-	dump_buf(__func__, buf, 7);
+	dump_buf(__func__, buf, 11);
 	DevType = buf[0];
 	//DevId = (buf[2] << 8) | buf[1]; 
 	DevId = ntohs(*(unsigned short *) &buf[1]);
 	ArmyId = ntohs(*(unsigned short *) &buf[3]);
 	NumLen = buf[5];
 	SpeechEncode = buf[6];
-	asNum = ntohl(*(uint32 *)&buf[7]);
 
 	Board_Mng_716_Set_Dev_Id(DevType, DevId);
 	Board_Mng_716_Set_Army_Id(ArmyId);
 	Board_Mng_716_Set_Num_Len(NumLen);
 	Board_Mng_716_Set_Speech_Encode(SpeechEncode);
-	Board_Mng_IPAs_Cfg(asNum);
 
 	return 0;
 }
@@ -192,7 +177,7 @@ int Board_Mng_Set_Inf_Type(uint8 PortId, uint8 Type)
 	ZxCmd.Type = Type;
 
 	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
-	printf("%s PortId=%d, Type=0x%x\n", __func__, PortId, Type);
+	//printf("%s PortId=%d, Type=0x%x\n", __func__, PortId, Type);
 	
 	return DRV_OK;
 }
@@ -210,9 +195,7 @@ int Board_Mng_Set_Inf_Speed(uint8 PortId, uint8 Speed)
 	ZxCmd.PortSpeed = Speed;
 
 	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
-
-
-	printf("%s PortId=%d, Speed=0x%x\n", __func__, PortId, Speed);
+	//printf("%s PortId=%d, Speed=0x%x\n", __func__, PortId, Speed);
 	
 	return DRV_OK;
 }
@@ -230,7 +213,7 @@ int Board_Mng_Set_Inf_Mode(uint8 PortId, uint8 Mode)
 
 	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
 
-	printf("%s PortId=%d, Mode=0x%x\n", __func__, PortId, Mode);
+	//printf("%s PortId=%d, Mode=0x%x\n", __func__, PortId, Mode);
 	
 	return DRV_OK;
 }
@@ -247,7 +230,7 @@ int Board_Mng_Set_Inf_Clk(uint8 PortId, uint8 Clk)
 	ZxCmd.PortClk = Clk;
 
 	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
-	printf("%s PortId=%d, Clk=0x%x\n", __func__, PortId, Clk);
+	//printf("%s PortId=%d, Clk=0x%x\n", __func__, PortId, Clk);
 	
 	return DRV_OK;
 }
@@ -263,7 +246,7 @@ int Board_Mng_Set_Inf_SM(uint8 PortId, uint8 Master)
 	ZxCmd.Master = Master;
 
 	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
-	printf("%s PortId=%d, Master=0x%x\n", __func__, PortId, Master);
+	//printf("%s PortId=%d, Master=0x%x\n", __func__, PortId, Master);
 	
 	return DRV_OK;
 }
@@ -279,13 +262,10 @@ int Board_Mng_Set_Inf_Huanhui(uint8 PortId, uint8 Huanhui)
 	ZxCmd.Huanhui = Huanhui;
 
 	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
-	printf("%s PortId=%d, Huanhui=0x%x\n", __func__, PortId, Huanhui);
+	//printf("%s PortId=%d, Huanhui=0x%x\n", __func__, PortId, Huanhui);
 	
 	return DRV_OK;
 }
-
-
-
 
 int qlintf_cb(unsigned char *buf, int len) {	
 	typedef struct qlintf_tag_msg {
@@ -302,9 +282,11 @@ int qlintf_cb(unsigned char *buf, int len) {
 	qlintf_msg *msg = &buf[1];
 
 	num = buf[0];
+	dump_buf(__func__, buf, 1);
 	for (i = 0; i < num; i++) {
+		dump_buf(__func__, &msg[i], 7);
 		if (msg[i].id == 1)
-		Board_Mng_Set_Inf_Type(msg[i].id, msg[i].type);
+			Board_Mng_Set_Inf_Type(msg[i].id, msg[i].type);
 		Board_Mng_Set_Inf_Speed(msg[i].id, msg[i].speed);     
 
 		if ((msg[i].id == 0x0d) || (msg[i].id == 0x0e) || ((msg[i].id == 0x1) && (msg[i].type == 2)))
@@ -313,54 +295,13 @@ int qlintf_cb(unsigned char *buf, int len) {
 		Board_Mng_Set_Inf_Clk(msg[i].id, msg[i].clk);
 		Board_Mng_Set_Inf_SM(msg[i].id, msg[i].master);
 		Board_Mng_Set_Inf_Huanhui(msg[i].id, msg[i].huanhui);
+		sleep(1);
 	}
 
 	return 0;
-
 }
 
-
-int ycport_cb(unsigned char *buf, int len) {
-#if 0
-	uint8 num, i;
-	qlintf_msg *msg = &buf[1];
-
-	num = buf[0];
-	for (i = 0; i < num; i++) {
-		
-		Board_Mng_Set_Inf_Type(msg[i].id, msg[i].type);
-		Board_Mng_Set_Inf_Speed(msg[i].id, msg[i].speed);
-		Board_Mng_Set_Inf_Mode(msg[i].id, msg[i].mode);
-		Board_Mng_Set_Inf_Clk(msg[i].id, msg[i].clk);
-		Board_Mng_Set_Inf_SM(msg[i].id, msg[i].master);
-		Board_Mng_Set_Inf_Huanhui(msg[i].id, msg[i].huanhui);
-	}
-#endif
-
-#if 1
-
-Board_Mng_Set_Inf_Type(0x1, 2);
-Board_Mng_Set_Inf_Speed(0x1, 0x10);
-Board_Mng_Set_Inf_Mode(0x1, 0x1);
-Board_Mng_Set_Inf_Clk(0x1, 2);
-Board_Mng_Set_Inf_SM(0x1, 2);
-Board_Mng_Set_Inf_Huanhui(0x1, 2);
-
-#else
-	Board_Mng_Set_Inf_Type(3, 2);
-	Board_Mng_Set_Inf_Speed(3, 0x80);
-	Board_Mng_Set_Inf_Mode(3, 0);
-	Board_Mng_Set_Inf_Clk(3, 2);
-	Board_Mng_Set_Inf_SM(3, 1);
-	Board_Mng_Set_Inf_Huanhui(3, 1);
-#endif
-
-	return 0;
-
-}
-
-
-int Board_Mng_Set_User_Num(uint8 *pUsrNum, uint16 SecurityNum)
+int Board_Mng_Set_User_Num(uint8 *pUsrNum, uint16 SecurityNum, uint8 channel)
 {
 	ST_HF_MGW_DCU_PRO Regmsg;
 	MNG_ZW_USR_CFG_PKT ZxCmd;
@@ -377,8 +318,7 @@ int Board_Mng_Set_User_Num(uint8 *pUsrNum, uint16 SecurityNum)
 	ZxCmd.Ack = 1;
 	memcpy(ZxCmd.UserNum,pUsrNum,4);
 	ZxCmd.SecurityNum = SecurityNum;
-	ZxCmd.ChannelId = 1;//此项必须有
-	dump_buf(__func__, ZxCmd.UserNum, 4);
+	ZxCmd.ChannelId = channel;//此项必须有
 
 	memcpy(Regmsg.body, &ZxCmd, sizeof(ZxCmd));
 
@@ -393,8 +333,6 @@ int Board_Mng_Set_User_Num(uint8 *pUsrNum, uint16 SecurityNum)
 	len = sizeof(ST_HF_MGW_DCU_PRO_HEADER) + Regmsg.header.data_len;	
 	Board_Mng_SendTo_716((uint8 *)&Regmsg, len);
 
-	printf("%s , SecurityNum=0x%x\n", __func__, SecurityNum);
-
 	return 0;
 }
 
@@ -403,22 +341,21 @@ int usrnum_cb(unsigned char *buf, int len) {
 	int cnt, i; 
 	uint8 *pUsrNum;
 	uint16 secNum;
+	uint8 channel;
 
 	cnt = buf[0];
 	dump_buf(__func__, buf, 1 + 7*cnt);
 	DBG("try configure %d users\n",cnt);
 	
 	for(i = 0; i < cnt; i++){
-		//pUsrNum =&buf[1+i*6];
-		//secNum = htons(*(uint16 *)(&buf[1+i*6+4]));
+		channel = buf[1+i*7];
 		pUsrNum =&buf[2+i*7];
 		secNum = htons(*(uint16 *)(&buf[1+1+i*7+4]));
-		Board_Mng_Set_User_Num(pUsrNum,secNum);
+		Board_Mng_Set_User_Num(pUsrNum,secNum, channel);
 	}
 
 	return 0;
 }	
-
 
 
 /**
@@ -617,7 +554,7 @@ int Board_Mng_Meet_Cfg(uint8 *pConfNum, uint8 *pMebs, int mebsCnt)
 	memcpy(ZxCmd.mebs, pMebs, 4*mebsCnt);
 
 
-	DBG("\r\n>> %s, len=%d\n", __func__, sizeof(ZxCmd.header)+ZxCmd.header.CmdLen);
+	//DBG("\r\n>> %s, len=%d\n", __func__, sizeof(ZxCmd.header)+ZxCmd.header.CmdLen);
 	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd.header)+ZxCmd.header.CmdLen);
 }
 
@@ -625,14 +562,14 @@ int meetpa_cb(unsigned char *buf, int len) {
 	int cnt, i;
 	int confMebCnt;
 	uint8 *pConfNum = NULL, *pPartMebs = NULL;
-	dump_buf(__func__, buf, len);
+
 	cnt =buf[0];
 	DBG("%s, cnt=%d\n", __func__, cnt);
 
-	pConfNum = &buf[1];
+	pConfNum = &buf[1];//会议号码
 	for(i = 0; i < cnt; i++){
-		confMebCnt = *(pConfNum+2);
-		pPartMebs = (pConfNum+3);
+		confMebCnt = *(pConfNum+2);//成员个数
+		pPartMebs = (pConfNum+3);//成员号码
 		dump_buf(__func__, pConfNum, 3 + confMebCnt * 4);
 		Board_Mng_Meet_Cfg(pConfNum, pPartMebs, confMebCnt);
 		pConfNum += 3+4*confMebCnt;
@@ -709,9 +646,11 @@ int Board_Mng_RadioIntf_Cfg(uint8 port, uint8 portType, uint8 workMod)
 int raintf_cb(unsigned char *buf, int len) {
 	int cnt, i = 0;
 	uint8 port, chanType, workMod, *pRadioCfg;
-	dump_buf(__func__, buf, len);
+
 
 	cnt = buf[0];
+	dump_buf(__func__, buf, 1 + cnt * 3);
+
 	for(i = 0; i < cnt;  i++){
 		pRadioCfg = &buf[1+i*3];
 		port = *pRadioCfg;
@@ -723,22 +662,49 @@ int raintf_cb(unsigned char *buf, int len) {
 	return 0;
 }
 
+int Board_Mng_IP_Cfg(uint32 ipaddr, uint8 mask)
+{
+	MNG_ZW_IP_CFG_PKT ZxCmd;
+	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
 
-
-#if 0
-int ippara_cb(unsigned char *buf, int len) {
-	uint32 ipAddr, asNum;
-	uint8 mask;
-	dump_buf(__func__, buf, 9);
-
-	ipAddr = ntohl((uint32 *)&buf[0]);
-	mask  = buf[4];
-	asNum = ntohl((uint32 *)&buf[5]);
-
-	Board_Mng_IPAs_Cfg(asNum);
+	ZxCmd.header.InfoType = ZW_INFO_TYPE_IP_CFG;
+	ZxCmd.header.CmdLen = 5;
+	ZxCmd.ipaddr = htonl(ipaddr);
+	ZxCmd.mask = mask;
+	
+	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
 	return 0;
 }
-#endif
+
+int Board_Mng_IPAs_Cfg(uint32 asNum)
+{
+	MNG_ZW_IP_AS_CFG_PKT ZxCmd;
+	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
+
+	ZxCmd.header.InfoType = ZW_INFO_TYPE_IP_AS_CFG;
+	ZxCmd.header.CmdLen = 4;
+	ZxCmd.asNum = htonl(asNum);
+	
+	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
+	return 0;
+}
+
+int ippara_cb(unsigned char *buf, int len) {
+	uint32 ipaddr, asNum;
+	uint8 mask;
+
+	dump_buf(__func__, buf, 9);
+	ipaddr = ntohl(*(uint32 *)buf);
+	mask = buf[4];
+	asNum = ntohl(*(uint32 *)&buf[5]);
+
+	Board_Mng_IP_Cfg(ipaddr, mask);
+	Board_Mng_IPAs_Cfg(asNum);
+
+	sleep(2);
+	
+	return 0;
+}
 
 int Board_Mng_IPIntf_Addr_Cfg(uint8 port, uint8 addrMod, uint32 ipaddr, uint8 mask)
 {
@@ -754,12 +720,10 @@ int Board_Mng_IPIntf_Addr_Cfg(uint8 port, uint8 addrMod, uint32 ipaddr, uint8 ma
 	ZxCmd.ipaddr = htonl(ipaddr);
 	ZxCmd.mask = mask;
 	
-
-
-
 	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
 	return 0;
 }
+
 int Board_Mng_IPIntf_Route_Cfg(uint8 port, uint8 routeP, uint8 groupEn)
 {
 	MNG_ZW_IPINTF_ROUTE_CFG_PKT ZxCmd;
@@ -777,18 +741,18 @@ int Board_Mng_IPIntf_Route_Cfg(uint8 port, uint8 routeP, uint8 groupEn)
 	return 0;
 }
 
-
 int ipintf_cb(unsigned char *buf, int len) {
 	int cnt, i;
 	uint8 *pIpIntfCfg;
 	uint8 port, portType, addrMod, mask, route, group, mpls, linkP;
 	uint32 ipaddr, mtu;
 
-
 	cnt = buf[0];
-	dump_buf(__func__, buf, 1 + cnt * 16);
+	dump_buf(__func__, buf, 1);
+
 	for(i = 0; i < cnt; i++){
 		pIpIntfCfg = &buf[1+ i * 16];
+		dump_buf(__func__, pIpIntfCfg, 16);
 		port = *(pIpIntfCfg);
 		portType = *(pIpIntfCfg +1);
 		addrMod = *(pIpIntfCfg +2 );
@@ -802,24 +766,28 @@ int ipintf_cb(unsigned char *buf, int len) {
 
 		Board_Mng_IPIntf_Addr_Cfg(port,addrMod,ipaddr,mask);
 		Board_Mng_IPIntf_Route_Cfg(port,route,group);
+		sleep(1);
+		DBG("--sleep-- 1s \r\n");//wait for 716 process
 	}
 
+	DBG(">>>>>>>>>>>>%s<<<<<<<<<<<<<end \r\n", __func__);
 
 	return 0;
 }
 
-int Board_Mng_Ffp_Cfg(uint8 port, uint32 areaId, uint16 helloT, uint16 holdT)
+int Board_Mng_Ffp_Cfg(uint8 port, uint16 helloT, uint16 holdT, uint8 qltd, uint8 spfg)
 {
 	MNG_ZW_FRP_CFG_PKT ZxCmd;
 	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
 
 	ZxCmd.header.InfoType = ZW_INFO_TYPE_FRP_CFG;
-	ZxCmd.header.CmdLen = 10;
+	ZxCmd.header.CmdLen = 8;
 	ZxCmd.boardType = 1;	/*ZW board*/
 	ZxCmd.port = port;
-	ZxCmd.areaID = htonl(areaId);
 	ZxCmd.helloT = htons(helloT);
 	ZxCmd.holdT = htons(holdT);
+	ZxCmd.qltd = qltd;
+	ZxCmd.spfg = spfg;
 
 	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
 	return 0;
@@ -829,43 +797,63 @@ int Board_Mng_Ffp_Cfg(uint8 port, uint32 areaId, uint16 helloT, uint16 holdT)
 int frppar_cb(unsigned char *buf, int len) {
 	int cnt, i;
 	uint8 *pFrpCfg, port, qltEn, spfgEn;
-	uint32 areaID;
 	uint16 helloT, holdT;
 
 
 	cnt =  buf[0];
-	dump_buf(__func__, buf, 1 + cnt * 12);
+	dump_buf(__func__, buf, 1 + cnt * 8);
+
 	for(i = 0; i < cnt; i++){
-		pFrpCfg = & buf[1 + i* 12];
+		pFrpCfg = & buf[1 + i* 8];
 		port = *(pFrpCfg);
-		areaID = ntohl(*(uint32 *)(pFrpCfg+2));
-		helloT = ntohs(*(uint16 *)(pFrpCfg+6));
-		holdT = ntohs(*(uint16 *)(pFrpCfg+8));
-		qltEn = *(pFrpCfg+9);
-		spfgEn = *(pFrpCfg +10);
-		Board_Mng_Ffp_Cfg( port,areaID,helloT, holdT);
-		
+		helloT = ntohs(*(uint16 *)(pFrpCfg+2));
+		holdT = ntohs(*(uint16 *)(pFrpCfg+4));
+		qltEn = *(pFrpCfg+6);
+		spfgEn = *(pFrpCfg +7);
+		Board_Mng_Ffp_Cfg( port, helloT, holdT, qltEn, spfgEn);
 	}
+			
+	return 0;
+}
+
+int Board_Mng_Tirp_Cfg(uint8 port, uint16 flashT, uint16 expiredT, uint16 delT, uint8 spfgEn, uint8 compress)
+{
+	MNG_ZW_TIRP_CFG_PKT ZxCmd;
+	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
+
+	ZxCmd.header.InfoType = ZW_INFO_TYPE_TIRP_CFG;
+	ZxCmd.header.CmdLen = 10;
+	ZxCmd.boardType = 1;	/*ZW board*/
+	ZxCmd.port = port;
+	ZxCmd.flashT = htons(flashT);
+	ZxCmd.expiredT = htons(expiredT);
+	ZxCmd.delT = htons(delT);
+	ZxCmd.spfgEn = spfgEn;
+	ZxCmd.compress = compress;
+
+	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
 
 	return 0;
 }
 
 int tirppa_cb(unsigned char *buf, int len) {
 	int cnt, i;
-	uint8 *pTirpCfg, port, spfgEn;
+	uint8 *pTirpCfg, port, spfgEn, compress;
 	uint32 flashT, expiredT, delT;
 
 
 	cnt = buf[0];
-	dump_buf(__func__, buf, 1 + cnt * 15);
+	dump_buf(__func__, buf, 1 + cnt * 10);
 
 	for(i = 0; i < cnt; i++){
-		pTirpCfg = &buf[1+i* 15];
+		pTirpCfg = &buf[1+i* 10];
 		port = *(pTirpCfg);
-		flashT = ntohl(*(uint32 *)(pTirpCfg + 2));
-		expiredT = ntohl(*(uint32 *)(pTirpCfg + 6));
-		delT = ntohl(*(uint32 *)(pTirpCfg + 10));
-		spfgEn = *(pTirpCfg +14);
+		flashT = ntohs(*(uint16 *)(pTirpCfg + 2));
+		expiredT = ntohs(*(uint16 *)(pTirpCfg + 4));
+		delT = ntohs(*(uint16 *)(pTirpCfg + 6));
+		spfgEn = *(pTirpCfg +8);
+		compress = *(pTirpCfg +9);
+		Board_Mng_Tirp_Cfg(port, flashT, expiredT, delT, spfgEn, compress);		
 	}
 	return 0;
 }
@@ -886,9 +874,10 @@ int Board_Mng_Lycff_Cfg(
 	ZxCmd.ripRT_EN = ripRT;
 	ZxCmd.tirpRT_EN = tirpRT;
 	ZxCmd.frpAS = htonl(frpAs);
-	
 
 	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
+	usleep(200*1000);
+	
 	return 0;
 }
 
@@ -938,9 +927,9 @@ int lyjhpa_cb(unsigned char *buf, int len) {
 	dump_buf(__func__, buf, 1 + cnt * 8);
 
 	for(i = 0; i < cnt; i++){
-		pCfg = &buf[1+8];
+		pCfg = &buf[1+ 8 * i];
 		port = *(pCfg);
-		net = htonl(*(uint32 *)(pCfg+1));
+		net = ntohl(*(uint32 *)(pCfg+1));
 		mask = *(pCfg +5);
 		routeP = *(pCfg +6);
 		enFlg = *(pCfg +7);
@@ -975,8 +964,6 @@ int jtlypa_cb(unsigned char *buf, int len) {
 
 	cnt = buf[0];
 	dump_buf(__func__, buf, 1 + cnt * 9);
-
-	
 
 	for(i = 0; i < cnt; i++){
 		pCfg = &buf[1+i*9];
@@ -1070,6 +1057,71 @@ int fibrpa_cb(unsigned char *buf, int len) {
 	return 0;
 }
 
+int DisplayBoardCLear()
+{
+	ST_DISPLAY_MNG_MSG msg;
+	uint16 x, y;
+
+	DBG("%s \r\n", __func__);
+	msg.header = 0xfe;
+	msg.total_len = 14;
+	msg.cmd = 0x00;
+	msg.type = 0;
+	msg.data_len = 8;
+	msg.body[0] = 0x00;
+	msg.body[1] = 0x00;
+	msg.body[2] = 0;
+	msg.body[3] = 0;
+
+	x = htons(319);
+	y = htons(240);
+	memcpy(&msg.body[4], &x, 2);
+	memcpy(&msg.body[6], &y, 2);		
+
+	Board_Mng_SendTo_Display(&msg, msg.total_len);
+
+	return 0;
+}
+
+
+int DisplayBoardShowOK()
+{
+	ST_DISPLAY_MNG_MSG msg;
+
+	DBG("%s \r\n", __func__);
+	msg.header = 0xfe;
+	msg.total_len = 28;
+	msg.cmd = 0x03;
+	msg.type = 0;
+	msg.data_len = 22;
+	msg.body[0] = 0x00;
+	msg.body[1] = 100;
+	msg.body[2] = 0;
+	msg.body[3] = 110;
+	
+	msg.body[4] = 215; //注
+	msg.body[5] = 162;
+	msg.body[6] = 178; //参
+	msg.body[7] = 206;
+	msg.body[8] = 205; //完
+	msg.body[9] = 234;	
+	msg.body[10] = 179; //成
+	msg.body[11] = 201;	
+	msg.body[12] = 163; //!
+	msg.body[13] = 161;
+	msg.body[14] = 199; //请
+	msg.body[15] = 235;
+	msg.body[16] = 214; //重
+	msg.body[17] = 216;
+	msg.body[18] = 198; //启
+	msg.body[19] = 244;		
+	msg.body[20] = 163; //!
+	msg.body[21] = 161;
+
+	Board_Mng_SendTo_Display(&msg, msg.total_len);
+
+	return 0;
+}
 
 
 

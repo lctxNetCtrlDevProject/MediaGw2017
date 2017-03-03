@@ -338,7 +338,7 @@ void  procParaFile(PARA_INJECT_PKT_HEAD *srcPkt){
 void handleSndParaFile(PARA_INJECT_SND_PARA_FILE_PKT *pPkt){
 	int curParaLen = 0;
 	int spilitLen = 0;
-	int fileLen= 0;
+	static int fileLen= 0;
 	if(isLocalDev(&pPkt->dev_id) == false){
 		DBG("Not to local dev, discard it");
 		return;
@@ -349,8 +349,9 @@ void handleSndParaFile(PARA_INJECT_SND_PARA_FILE_PKT *pPkt){
 		return;
 	}
 
-	printf("------head len = 0x%x ---------\n", pPkt->head.len);
 	spilitLen = ntohs(pPkt->head.len) - sizeof(DEV_ID_TYPE)- sizeof(PARA_INJECT_PKT_HEAD);
+	DBG("spilitLen=0x%x, head len=0x%x \r\n", spilitLen, pPkt->head.len);
+	DBG("fileLen=0x%x, g_paraLen=0x%x \r\n", fileLen, g_paraLen);
 
 	if(spilitLen > 1024){
 		DBGX("Invalid splitLen");
@@ -363,15 +364,23 @@ void handleSndParaFile(PARA_INJECT_SND_PARA_FILE_PKT *pPkt){
 			replyFail(pPkt, ERR_INVA_FILE_LEN,NULL);
 			resetRcving();
 			return;
-		}			
+		}	
+
+		//dispPkt(__func__, pPkt->para, spilitLen);
 		memcpy((g_pParaBuf+fileLen), pPkt->para,spilitLen);
 		fileLen += spilitLen;
 	}
 
+	DBG("fileLen=0x%x, g_paraLen=0x%x\r\n", fileLen, g_paraLen);
 	if (fileLen == g_paraLen){
 		DBG("Complete rcv para file, try analysi it"); 
+		replySuc(pPkt);
 		procParaFile(pPkt); 
 		resetRcving();
+		DBG("INJECT END --- \r\n");
+		DisplayBoardCLear();
+		DisplayBoardShowOK();
+		fileLen = 0;
 		return;
 	}
 
@@ -379,7 +388,11 @@ void handleSndParaFile(PARA_INJECT_SND_PARA_FILE_PKT *pPkt){
 		DBGX("Invalid fileLen");
 		replyFail(pPkt, ERR_INVA_FILE_LEN,NULL);
 		resetRcving();
+		fileLen = 0;
+		return;
 	}
+	
+	replySuc(pPkt);
 
 	return;
 }
@@ -393,6 +406,9 @@ void paraInjectProc(unsigned char *buf, int len ){
 		ERROR("Invalid Parameter");
 		return;
 	}
+	
+	dispPkt(__func__, buf, len);
+	printf("%s, len=0x%x\n", __func__, len);
 	pPduPkt = (PARA_INJECT_PKT_HEAD *)buf;
 	ope = pPduPkt->ope;
 
@@ -448,7 +464,7 @@ int createListenSocket(){
 
 
 void paraInjectAgnetThr(){
-	unsigned char buf[1024];
+	unsigned char buf[1024+16];//data len: 1024, header len: 16
 	int len = 0;
 	struct sockaddr_in addr;
 	int addr_len =sizeof(struct sockaddr_in);

@@ -9,6 +9,7 @@ typedef enum{
 	ZW_INFO_TYPE_IPINTF_ADDR_CFG = 0x80,
 	ZW_INFO_TYPE_IPINTF_ROUTE_CFG = 0x81,
 	ZW_INFO_TYPE_IP_AS_CFG = 0x87,
+	ZW_INFO_TYPE_IP_CFG = 0x88,
 
 	ZW_INFO_TYPE_FIBR_STA_CFG  = 0xa1,
 	ZW_INFO_TYPE_FIBR_INTF_CFG = 0xa3,
@@ -17,6 +18,7 @@ typedef enum{
 	ZW_INFO_TYPE_LYCFF_CFG = 0xaa,
 	ZW_INFO_TYPE_FIBR_YW_CFG = 0xab,
 	ZW_INFO_TYPE_FRP_CFG = 0xb0,
+	ZW_INFO_TYPE_TIRP_CFG = 0x2a,
 	ZW_INFO_TYPE_LYJH_CFG = 0xbe,
 	ZW_INFO_TYPE_RADIO_INTF_CFG = 0xb5,	/*radio intf cfg*/
 }ZwMngInfoType;
@@ -204,6 +206,14 @@ typedef struct
 typedef struct
 {
 	ZwMngHeader header;
+	uint32 ipaddr;
+	uint8 mask;
+}MNG_ZW_IP_CFG_PKT;
+
+
+typedef struct
+{
+	ZwMngHeader header;
 	uint8 ope;			/*1,add; 2, del*/
 	uint8 boardType;		/*default 1*/
 	uint8 port;
@@ -228,10 +238,23 @@ typedef struct
 	ZwMngHeader header;
 	uint8 boardType;		/*default 1*/
 	uint8 port;
-	uint32 areaID;
 	uint16 helloT;
 	uint16 holdT;
+	uint8 qltd;
+	uint8 spfg;
 }MNG_ZW_FRP_CFG_PKT;
+
+typedef struct
+{
+	ZwMngHeader header;
+	uint8 boardType;		/*default 1*/
+	uint8 port;
+	uint16 flashT;
+	uint16 expiredT;
+	uint16 delT;
+	uint8 spfgEn;
+	uint8 compress;
+}MNG_ZW_TIRP_CFG_PKT;
 
 typedef struct
 {

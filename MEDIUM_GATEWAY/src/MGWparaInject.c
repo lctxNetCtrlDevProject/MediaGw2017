@@ -18,7 +18,6 @@ typedef struct _tag {
 
 extern int zwjrpa_cb(unsigned char *buf, int len);
 extern int qlintf_cb(unsigned char *buf, int len);
-extern int ycport_cb(unsigned char *buf, int len);
 extern int usrnum_cb(unsigned char *buf, int len);
 extern int pfzsys_cb(unsigned char *buf, int len);
 extern int xwvsip_cb(unsigned char *buf, int len);
@@ -64,6 +63,7 @@ extern int mgwpar_cb(unsigned char *buf, int len);
 extern int mgwcof_cb(unsigned char *buf, int len);
 extern int compar_cb(unsigned char *buf, int len);
 extern int fibrpa_cb(unsigned char *buf, int len);
+extern int ippara_cb(unsigned char *buf, int len);
 
 
 
@@ -71,6 +71,7 @@ extern int fibrpa_cb(unsigned char *buf, int len);
 /***********Global Vari****************/
 /*all para tag in paraInject file*/
 tag tagList[] = {
+#if 0
 	{"pfzsys", pfzsys_cb},
 	{"xwvsip", xwvsip_cb},
 	{"gidpar", gidpar_cb},
@@ -100,11 +101,13 @@ tag tagList[] = {
 	{"pfvsip", pfvsip_cb},
 	{"pfhfpr", pfhfpr_cb},
 	{"xyrlst", xyrlst_cb},
+
+#endif	
 	{"zwjrpa", zwjrpa_cb},
 	{"usrnum", usrnum_cb},
 	{"meetpa", meetpa_cb},
 	{"linepa", linepa_cb},
-	{"tdhjys", tdhjys_cb},
+	//////{"tdhjys", tdhjys_cb},
 	{"qlintf", qlintf_cb},
 	{"raintf", raintf_cb},
 	{"ipintf", ipintf_cb},
@@ -113,6 +116,7 @@ tag tagList[] = {
 	{"lycfbp", lycfbp_cb},
 	{"lyjhpa", lyjhpa_cb},
 	{"jtlypa", jtlypa_cb},
+	{"ippara", ippara_cb},
 	{"wkmode", wkmode_cb},
 	{"mgwpar", mgwpar_cb},
 	{"mgwcof",mgwcof_cb},
@@ -120,21 +124,6 @@ tag tagList[] = {
 	{"fibrpa", fibrpa_cb},
 	{"", NULL},
 };
-
-
-#if 0
-int ycport_cb(unsigned char *buf, int len)
-{
-	int i = 0;
-	printf("\n--------start ycport_cb ---------\n");
-	for (i = 0; i<5; i++)
-		printf("%2x ", buf[i]);
-	printf("\n--------end ycport_cb ---------\n");
-	return 0;
-}
-#endif
-
-
 
 /****----------------Stake funs------------------------------***/
 
@@ -147,13 +136,8 @@ int  paraFileProcFun(unsigned char *buf, int len){
 	//how to deal with buffer size > len
 	DBG(" process para inject files");
 	printf("-------------start------------");
-	for (i = 0; i < len; i++)
-	{
-		if (i%20 == 0)
-			printf("\n");
-		printf("0x%x ", buf[i]);
-	}
-	printf("\n");
+
+	dispPkt(__func__, buf, len);
 
 	/*we have to guarantee workMode Configure first.
 	**Only in these case, some workmode specific paras can be configured
@@ -167,6 +151,7 @@ int  paraFileProcFun(unsigned char *buf, int len){
 				ret = memcmp(&buf[j], &tagList[i], 6);
 				if (ret == 0) { //find tag
 					ret = tagList[i].callback(&buf[j]+6, 0);
+					sleep(1);
 					if (ret) {
 						printf("tag:%s callback error\n", tagList[i].name);
 						return -1;

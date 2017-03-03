@@ -4083,6 +4083,7 @@ void workModSet(int8 setMode){
 					(WORK_MODE_ADAPTER == setMode)){
 	change_config_var_val(mgw_cfg, "workmode", setMode);
 	//rewrite_config(mgw_cfg);
+	Param_update.workmode = setMode;
 	Param_update.cfg_wr_flg = 1;
 
 	VERBOSE_OUT(LOG_SYS,"Set 834 board workmode to 0x%xx\r\n", setMode);
