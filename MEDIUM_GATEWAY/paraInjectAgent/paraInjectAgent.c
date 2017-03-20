@@ -339,6 +339,7 @@ void handleSndParaFile(PARA_INJECT_SND_PARA_FILE_PKT *pPkt){
 	int curParaLen = 0;
 	int spilitLen = 0;
 	static int fileLen= 0;
+	int i;
 	if(isLocalDev(&pPkt->dev_id) == false){
 		DBG("Not to local dev, discard it");
 		return;
@@ -375,12 +376,18 @@ void handleSndParaFile(PARA_INJECT_SND_PARA_FILE_PKT *pPkt){
 	if (fileLen == g_paraLen){
 		DBG("Complete rcv para file, try analysi it"); 
 		replySuc(pPkt);
+		DisplayBoardCLear();
+		DispBoardShowInjIng();
 		procParaFile(pPkt); 
 		resetRcving();
 		DBG("INJECT END --- \r\n");
 		DisplayBoardCLear();
-		DisplayBoardShowOK();
 		fileLen = 0;
+		for (i = 0; i < 3; i++) {
+			DisplayBoardShowInjOK();
+			sleep(1);
+		}
+
 		return;
 	}
 

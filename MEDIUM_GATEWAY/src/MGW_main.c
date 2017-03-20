@@ -750,11 +750,8 @@ int main(int argc, char *argv[])
 	inc_pthread_create(&rpcBoard716RadioMngThrdId,NULL,(void *)Board_716_Radio_RxThread, NULL);	
 	inc_pthread_create(&rpcBoard50MngThrdId,NULL,(void *)Board_50_Mng_RxThread, NULL);	
 	inc_pthread_create(&rpcDisplay_zhuangjiaThrdId,NULL,(void *)RpcDisplayMng_Zhuangjia_From_dis_RxThread, NULL);		
-	inc_pthread_create(&rpcDisplay_zhuangjia716ThrdId,NULL,(void *)RpcDisplayMng_Zhuangjia_from_716_RxThread, NULL);		
-	//inc_pthread_create(&paraInjectThrdId,NULL,(void *)ParaInjectThread, NULL);	
+	inc_pthread_create(&rpcDisplay_zhuangjia716ThrdId,NULL,(void *)RpcDisplayMng_Zhuangjia_from_716_RxThread, NULL);
 	ParaInject();
-	//testCksum();
-	//Board_Mng_Set_Inf_Speed(1, 2);
 	// here, we bind *:30006 in RpcSeatMng_RxThread. so , this one do not need RpcSeatMng_Default_RxThread
 	//by -Andy-wei.hou 2017.02.20
 
@@ -770,6 +767,13 @@ int main(int argc, char *argv[])
 #ifdef SWITCH_VLAN_CTL
 	switch_vlan_init();
 #endif
+
+	int i = 0;
+	for (i = 0; i < 6; i++) {
+		sleep(4);
+		DisplayBoardShowVersion();
+	}
+	
 	pthread_join(thread_shell, NULL);
 	pthread_join(thread_monitor, NULL);	
 	pthread_join(thread_pipe, NULL);	

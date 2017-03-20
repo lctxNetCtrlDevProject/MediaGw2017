@@ -107,7 +107,6 @@ tag tagList[] = {
 	{"usrnum", usrnum_cb},
 	{"meetpa", meetpa_cb},
 	{"linepa", linepa_cb},
-	//////{"tdhjys", tdhjys_cb},
 	{"qlintf", qlintf_cb},
 	{"raintf", raintf_cb},
 	{"ipintf", ipintf_cb},
@@ -206,10 +205,19 @@ int  paraFileProcFun(unsigned char *buf, int len){
 /*proc clear device parameter*/
 int paraClrFun(){
 	DBGX("clr dev paras");
+	Board_Mng_DelAll_User_Num();
+	usleep(100*1000);
+	Board_Mng_Meet_DelAll();
+	usleep(100*1000);
+	Board_Mng_ZX_DelAll();
+	Board_Mng_IPIntf_Addr_DelAll();
+	sleep(2);
+	Board_Mng_StRt_DelAll();
+	sleep(1);
+	Board_Mng_Lyjh_DelAll();
+	sleep(1);
 	return 0;
 }
-
-
 
 void ParaInject(){	
 	DEV_ID_TYPE devID;

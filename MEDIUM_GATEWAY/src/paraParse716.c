@@ -301,6 +301,36 @@ int qlintf_cb(unsigned char *buf, int len) {
 	return 0;
 }
 
+int Board_Mng_DelAll_User_Num()
+{
+	ST_HF_MGW_DCU_PRO Regmsg;
+	MNG_ZW_USR_CFG_PKT ZxCmd;
+	int len = 0;
+
+	memset(&Regmsg, 0x0, sizeof(Regmsg));
+	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
+
+	ZxCmd.header.InfoType = ZW_INFO_TYPE_USR_CFG;
+	ZxCmd.header.CmdLen = 4;
+	ZxCmd.CmdId = ZW_USR_ALL_NUM;	
+	ZxCmd.OpMode = ZW_USR_DEL;
+	ZxCmd.MsgLen = 1;
+	ZxCmd.Ack = 1;
+
+	memcpy(Regmsg.body, &ZxCmd, sizeof(ZxCmd));
+	Regmsg.header.baowen_type = 0xA0; //0xA0;协议上写0x0A
+	Regmsg.header.dst_addr = BAOWEN_ADDR_TYPE_716_BOARD;
+	Regmsg.header.src_addr = BAOWEN_ADDR_TYPE_50_BOARD;
+	Regmsg.header.info_type = BAOWEN_MSG_TYPE_CMD;
+	Regmsg.header.data_len = sizeof(ZxCmd);
+
+	len = sizeof(ST_HF_MGW_DCU_PRO_HEADER) + 7;//Regmsg.header.data_len;	
+	Board_Mng_SendTo_716((uint8 *)&Regmsg, len);
+
+	return 0;
+}
+
+
 int Board_Mng_Set_User_Num(uint8 *pUsrNum, uint16 SecurityNum, uint8 channel)
 {
 	ST_HF_MGW_DCU_PRO Regmsg;
@@ -346,12 +376,15 @@ int usrnum_cb(unsigned char *buf, int len) {
 	cnt = buf[0];
 	dump_buf(__func__, buf, 1 + 7*cnt);
 	DBG("try configure %d users\n",cnt);
+
+	//Board_Mng_DelAll_User_Num();
 	
 	for(i = 0; i < cnt; i++){
 		channel = buf[1+i*7];
 		pUsrNum =&buf[2+i*7];
 		secNum = htons(*(uint16 *)(&buf[1+1+i*7+4]));
 		Board_Mng_Set_User_Num(pUsrNum,secNum, channel);
+		usleep(200 * 1000);		
 	}
 
 	return 0;
@@ -537,6 +570,21 @@ int xyrlst_cb(unsigned char *buf, int len) {
 	return 0;
 }
 
+int Board_Mng_Meet_DelAll()
+{
+	MNG_ZW_CONF_CFG_PKT ZxCmd;
+	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
+
+	ZxCmd.header.InfoType = ZW_INFO_TYPE_CONF_CFG;
+	ZxCmd.header.CmdLen = 3;
+	ZxCmd.CmdId = ZW_MEET_ALL_NUM;	
+	ZxCmd.OpMode = ZW_USR_DEL;
+	ZxCmd.MsgLen = 0;
+	
+	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd.header)+ZxCmd.header.CmdLen);
+}
+
+
 int Board_Mng_Meet_Cfg(uint8 *pConfNum, uint8 *pMebs, int mebsCnt)
 {
 	MNG_ZW_CONF_CFG_PKT ZxCmd;
@@ -565,6 +613,7 @@ int meetpa_cb(unsigned char *buf, int len) {
 
 	cnt =buf[0];
 	DBG("%s, cnt=%d\n", __func__, cnt);
+	//Board_Mng_Meet_DelAll();
 
 	pConfNum = &buf[1];//会议号码
 	for(i = 0; i < cnt; i++){
@@ -578,6 +627,23 @@ int meetpa_cb(unsigned char *buf, int len) {
 
 	return 0;
 }
+
+int Board_Mng_ZX_DelAll()
+{
+	MNG_ZW_ZX_CFG_PKT ZxCmd;
+	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
+
+	ZxCmd.header.InfoType = ZW_INFO_TYPE_ZXRX_CFG;
+	ZxCmd.header.CmdLen = 6;
+	ZxCmd.CmdId = ZX_ZX_ALL_NUM;	
+	ZxCmd.OpMode = ZW_USR_DEL;
+	ZxCmd.MsgLen = 0x03;
+
+	ZxCmd.type = 1;
+	ZxCmd.Index = 0;
+	sendMsgTo716Board(&ZxCmd, 9);
+}
+
 
 int Board_Mng_ZX_Cfg(uint8 type, uint8 phoneId, uint8 chanId, uint8 *pArmyId,uint8 *pCalleeNum)
 {
@@ -608,7 +674,8 @@ int linepa_cb(unsigned char *buf, int len) {
 
 	cnt = buf[0];
 	dump_buf(__func__, buf, 1 + cnt * 9);
-	
+
+	//Board_Mng_ZX_DelAll();
 	for(i = 0; i < cnt; i++){
 		pZxCfg = &(buf[1+ 9*i]);
 		zxType = *pZxCfg;
@@ -706,6 +773,35 @@ int ippara_cb(unsigned char *buf, int len) {
 	return 0;
 }
 
+int Board_Mng_IPIntf_Addr_Del(uint8 port)
+{
+	MNG_ZW_IPINTF_ADDR_CFG_PKT ZxCmd;
+	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
+
+	ZxCmd.header.InfoType = ZW_INFO_TYPE_IPINTF_ADDR_CFG;
+	ZxCmd.header.CmdLen = 9;
+	ZxCmd.ope = 2;	/**Del*/
+	ZxCmd.boardType = 1;	/*ZW board*/
+	ZxCmd.port = port;
+	ZxCmd.addrType = 1;
+	ZxCmd.ipaddr = htonl(inet_addr("0.0.0.0"));
+	ZxCmd.mask = 0;
+	
+	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
+	DBG("%s port%d\r\n", __func__, port);
+	return 0;
+}
+
+int Board_Mng_IPIntf_Addr_DelAll()
+{
+	int i;
+
+	for (i = 1; i <= 0xf; i++)
+		Board_Mng_IPIntf_Addr_Del(i);
+	
+	return 0;
+}
+
 int Board_Mng_IPIntf_Addr_Cfg(uint8 port, uint8 addrMod, uint32 ipaddr, uint8 mask)
 {
 	MNG_ZW_IPINTF_ADDR_CFG_PKT ZxCmd;
@@ -765,6 +861,7 @@ int ipintf_cb(unsigned char *buf, int len) {
 		mtu 	 = ntohl(*(uint32 *)(pIpIntfCfg+12));
 
 		Board_Mng_IPIntf_Addr_Cfg(port,addrMod,ipaddr,mask);
+		sleep(1);
 		Board_Mng_IPIntf_Route_Cfg(port,route,group);
 		sleep(1);
 		DBG("--sleep-- 1s \r\n");//wait for 716 process
@@ -899,6 +996,31 @@ int lycfbp_cb(unsigned char *buf, int len)
 	return 0;
 }
 
+int Board_Mng_Lyjh_Del(uint8 port)
+{
+	MNG_ZW_LYJH_CFG_PKT ZxCmd;
+	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
+
+	ZxCmd.header.InfoType = ZW_INFO_TYPE_LYJH_CFG;
+	ZxCmd.header.CmdLen = 8;
+
+	ZxCmd.port = port;
+	ZxCmd.ope = 3;
+	
+	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
+	return 0;
+}
+
+int Board_Mng_Lyjh_DelAll()
+{
+	int i;
+	for (i = 0; i < 16; i++)
+		Board_Mng_Lyjh_Del(i);
+	
+	return 0;
+}
+
+
 int Board_Mng_Lyjh_Cfg(uint8 port, uint32 net, uint8 mask, uint8 routeP, uint8 enFlg)
 {
 	MNG_ZW_LYJH_CFG_PKT ZxCmd;
@@ -938,6 +1060,20 @@ int lyjhpa_cb(unsigned char *buf, int len) {
 	
 	return 0;
 }
+
+int Board_Mng_StRt_DelAll()
+{
+	MNG_ZW_STATIC_RT_CFG_PKT ZxCmd;
+	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
+
+	ZxCmd.header.InfoType = ZW_INFO_TYPE_ST_RT_CFG;
+	ZxCmd.header.CmdLen = 1;
+	ZxCmd.ope = 3;		/*1,add; 2, del; 3, delAll*/
+
+	sendMsgTo716Board(&ZxCmd, 4);
+	return 0;
+}
+
 
 int Board_Mng_StRt_Cfg(uint32 dstAddr, uint8 mask, uint32 nextHpAddr)
 {
@@ -1084,7 +1220,7 @@ int DisplayBoardCLear()
 }
 
 
-int DisplayBoardShowOK()
+int DisplayBoardShowInjOK()
 {
 	ST_DISPLAY_MNG_MSG msg;
 
@@ -1123,5 +1259,83 @@ int DisplayBoardShowOK()
 	return 0;
 }
 
+int DisplayBoardShowVersion()
+{
+	ST_DISPLAY_MNG_MSG msg;
 
+	DBG("%s \r\n", __func__);
+	msg.header = 0xfe;
+	msg.total_len = 18;
+	msg.cmd = 0x03;
+	msg.type = 0;
+	msg.data_len = 12;
+	msg.body[0] = 0x00;
+	msg.body[1] = 10;
+	msg.body[2] = 0;
+	msg.body[3] = 200;	
+	msg.body[4] = 176; //版
+	msg.body[5] = 230;
+	msg.body[6] = 177; //本
+	msg.body[7] = 190;
+	msg.body[8] = 186; //号
+	msg.body[9] = 197;	
+	msg.body[10] = 163; //:
+	msg.body[11] = 186; 
+	Board_Mng_SendTo_Display(&msg, msg.total_len);
+
+	msg.header = 0xfe;
+	msg.total_len = 14;
+	msg.cmd = 0x04;
+	msg.type = 0;
+	msg.data_len = 8;
+	msg.body[0] = 0x00;
+	msg.body[1] = 70;
+	msg.body[2] = 0;
+	msg.body[3] = 200;	
+	msg.body[4] = 86; //V
+	msg.body[5] = 48;	//0
+	msg.body[6] = 46; //.
+	msg.body[7] = 49; // 1
+	Board_Mng_SendTo_Display(&msg, msg.total_len);
+
+	return 0;
+}
+	
+int DispBoardShowInjIng()
+{
+	ST_DISPLAY_MNG_MSG msg;
+
+	DisplayBoardCLear();
+	DBG("%s \r\n", __func__);	
+	msg.header = 0xfe;
+	msg.total_len = 26;
+	msg.cmd = 0x03;
+	msg.type = 0;
+	msg.data_len = 20;
+	msg.body[0] = 0x00;
+	msg.body[1] = 100;
+	msg.body[2] = 0;
+	msg.body[3] = 110;	
+	msg.body[4] = 188; //加
+	msg.body[5] = 211;
+	msg.body[6] = 215; //注
+	msg.body[7] = 162;
+	msg.body[8] = 214; //中
+	msg.body[9] = 208;	
+	msg.body[10] = 163; //，
+	msg.body[11] = 172; 
+	msg.body[12] = 199; //请
+	msg.body[13] = 235;
+	msg.body[14] = 206; //勿
+	msg.body[15] = 240;
+	msg.body[16] = 182; //断
+	msg.body[17] = 207;
+	msg.body[18] = 181; //电
+	msg.body[19] = 231;
+
+	Board_Mng_SendTo_Display(&msg, msg.total_len);
+
+	return 0;
+}
+	
 
