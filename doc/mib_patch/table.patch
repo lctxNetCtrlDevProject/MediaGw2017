@@ -1,0 +1,188 @@
+--- netSnmpIETFWGTable.c	2017-03-22 16:54:00.805289100 +0800
++++ ../netSnmpIETFWGTable.c	2017-03-22 16:53:18.241399700 +0800
+@@ -7,16 +7,17 @@
+ #include <net-snmp/net-snmp-includes.h>
+ #include <net-snmp/agent/net-snmp-agent-includes.h>
+ #include "netSnmpIETFWGTable.h"
++#include "wgTabAccess.h"
+ 
+ /** Initializes the netSnmpIETFWGTable module */
+ void
+ init_netSnmpIETFWGTable(void)
+ {
++	initWgTab();
+   /* here we initialize all the tables we're planning on supporting */
+     initialize_table_netSnmpIETFWGTable();
+ }
+ 
+-  # Determine the first/last column names
+ 
+ /** Initialize the netSnmpIETFWGTable table by defining its contents and how it's structured */
+ void
+@@ -56,17 +57,17 @@
+     /* Typical data structure for a row entry */
+ struct netSnmpIETFWGTable_entry {
+     /* Index values */
+-    char nsIETFWGName[NNN];
++    char nsIETFWGName[STR_LEN];
+     size_t nsIETFWGName_len;
+ 
+     /* Column values */
+-    char nsIETFWGChair1[NNN];
++    char nsIETFWGChair1[STR_LEN];
+     size_t nsIETFWGChair1_len;
+-    char old_nsIETFWGChair1[NNN];
++    char old_nsIETFWGChair1[STR_LEN];
+     size_t old_nsIETFWGChair1_len;
+-    char nsIETFWGChair2[NNN];
++    char nsIETFWGChair2[STR_LEN];
+     size_t nsIETFWGChair2_len;
+-    char old_nsIETFWGChair2[NNN];
++    char old_nsIETFWGChair2[STR_LEN];
+     size_t old_nsIETFWGChair2_len;
+ 
+     /* Illustrate using a simple linked list */
+@@ -80,7 +81,7 @@
+ struct netSnmpIETFWGTable_entry *
+ netSnmpIETFWGTable_createEntry(
+                  char* nsIETFWGName,
+-                 size_t nsIETFWGName_len,
++                 size_t nsIETFWGName_len
+                 ) {
+     struct netSnmpIETFWGTable_entry *entry;
+ 
+@@ -119,6 +120,55 @@
+ 
+     SNMP_FREE( entry );   /* XXX - release any other internal resources */
+ }
++/*update one entry of tab*/
++static void fillTabEntry(struct netSnmpIETFWGTable_entry *entry, char *name, char *chair1, char *chair2){
++	if(!entry || !name){
++		DEBUGMSGTL((__func__,"Invalid Para"));
++		return;
++	}
++	strcpy(entry->nsIETFWGName,name);
++	entry->nsIETFWGName_len = strlen(name);
++	if(chair1){
++		strcpy(entry->nsIETFWGChair1,chair1);
++		entry->nsIETFWGChair1_len = strlen(chair1);
++	}
++	else{
++		memset(entry->nsIETFWGChair1,0x00,sizeof(entry->nsIETFWGChair1));
++		entry->nsIETFWGChair1_len =0;
++	}
++
++	if(chair2){
++		strcpy(entry->nsIETFWGChair2,chair2);
++		entry->nsIETFWGChair2_len = strlen(chair2);
++	}
++	else{
++		memset(entry->nsIETFWGChair2,0x00,sizeof(entry->nsIETFWGChair2));
++		entry->nsIETFWGChair2_len =0;
++	}
++}
++
++static void loadTab(){
++	int itemCnt = -1, i;
++	struct netSnmpIETFWGTable_entry *entry = NULL;
++	WG_TAB_TYPE *tab = NULL;
++	
++	/*refresh and get the global table*/
++	updateWgTab();
++	tab = getWgTab(&itemCnt);
++	
++	if(netSnmpIETFWGTable_head == NULL){
++		for(i = 0; i < itemCnt; i++){
++			netSnmpIETFWGTable_createEntry(tab[i].name, strlen(tab[i].name));
++		}
++	}	
++	entry = netSnmpIETFWGTable_head;
++	i = 0;
++	while(entry){
++		fillTabEntry(entry,tab[i].name,tab[i].chair1,tab[i].chair2);
++		i++;
++		entry = entry->next;
++	}
++}
+ 
+ 
+ /* Example iterator hook routines - using 'get_next' to do most of the work */
+@@ -128,6 +178,7 @@
+                           netsnmp_variable_list *put_index_data,
+                           netsnmp_iterator_info *mydata)
+ {
++	loadTab();
+     *my_loop_context = netSnmpIETFWGTable_head;
+     return netSnmpIETFWGTable_get_next_data_point(my_loop_context, my_data_context,
+                                     put_index_data,  mydata );
+@@ -162,6 +213,7 @@
+     netsnmp_agent_request_info        *reqinfo,
+     netsnmp_request_info              *requests) {
+ 
++	int ret =-1;
+     netsnmp_request_info       *request;
+     netsnmp_table_request_info *table_info;
+     struct netSnmpIETFWGTable_entry          *table_entry;
+@@ -244,7 +296,7 @@
+         break;
+ 
+     case MODE_SET_RESERVE2:
+-        for (request=requests; request; request=request->next) {
++		for (request=requests; request; request=request->next) {
+             table_entry = (struct netSnmpIETFWGTable_entry *)
+                               netsnmp_extract_iterator_context(request);
+             table_info  =     netsnmp_extract_table_info(      request);
+@@ -252,13 +304,13 @@
+             switch (table_info->colnum) {
+             case COLUMN_NSIETFWGCHAIR1:
+             case COLUMN_NSIETFWGCHAIR2:
+-                if ( !table_row ) {
+-                    table_row = netSnmpIETFWGTable_createEntry(
+-                        ,  table_info->indexes->val.string
++                if ( !table_entry ) {
++                    table_entry = netSnmpIETFWGTable_createEntry(
++                           table_info->indexes->val.string
+                         ,  table_info->indexes->val_len
+                         );
+-                    if (table_row) {
+-                        netsnmp_insert_iterator_context( request, table_row );
++                    if (table_entry) {
++                        netsnmp_insert_iterator_context( request, table_entry );
+                     } else {
+                         netsnmp_set_request_error( reqinfo, request,
+                                                    SNMP_ERR_RESOURCEUNAVAILABLE );
+@@ -280,14 +332,14 @@
+             case COLUMN_NSIETFWGCHAIR1:
+             case COLUMN_NSIETFWGCHAIR2:
+                 if ( table_entry && !table_entry->valid ) {
+-                    netSnmpIETFWGTable_removeEntry(table_data, table_row );
++                    netSnmpIETFWGTable_removeEntry(table_entry);
+                 }
+                 break;
+             }
+         }
+         break;
+ 
+-    case MODE_SET_ACTION:
++    case MODE_SET_ACTION:		
+         for (request=requests; request; request=request->next) {
+             table_entry = (struct netSnmpIETFWGTable_entry *)
+                               netsnmp_extract_iterator_context(request);
+@@ -335,7 +387,7 @@
+             switch (table_info->colnum) {
+             case COLUMN_NSIETFWGCHAIR1:
+                 if ( table_entry && !table_entry->valid ) {
+-                    netSnmpIETFWGTable_removeEntry(table_data, table_row );
++                    netSnmpIETFWGTable_removeEntry(table_entry);
+                 } else {
+                     memcpy( table_entry->nsIETFWGChair1,
+                             table_entry->old_nsIETFWGChair1,
+@@ -348,7 +400,7 @@
+                 break;
+             case COLUMN_NSIETFWGCHAIR2:
+                 if ( table_entry && !table_entry->valid ) {
+-                    netSnmpIETFWGTable_removeEntry(table_data, table_row );
++                    netSnmpIETFWGTable_removeEntry(table_entry);
+                 } else {
+                     memcpy( table_entry->nsIETFWGChair2,
+                             table_entry->old_nsIETFWGChair2,

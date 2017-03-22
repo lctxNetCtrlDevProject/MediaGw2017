@@ -31,10 +31,17 @@ mib2c -c mib2c.scalar.conf nstAgentModuleObject
 #running indent on nstAgentModuleObject.c
 
 #3. modify nstAgentModuleObject.c to handle get/set options by your own code
-#related modify details are shown on scalar/scalar.patch
+#related modify details are shown on scalar.patch
 #related referece how to proc get/set ope: http://www.net-snmp.org/dev/agent/delayed_instance_8c-example.html#_a5
 
-#Test
+
+#4. make 
+make 
+
+#5. then start the subAgent with root privilege
+sudo ./example-demon
+
+#6. Test
 snmpget -v2c -c public localhost 1.3.6.1.4.1.8072.2.4.1.1.1.0
 #NET-SNMP-EXAMPLES-MIB::netSnmpExamples.4.1.1.1.0 = INTEGER: 0
 
