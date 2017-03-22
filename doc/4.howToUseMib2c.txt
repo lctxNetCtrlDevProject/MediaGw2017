@@ -1,0 +1,53 @@
+#@Desc:	  This file descript how to using mib2c script tool and related cfg file to generate different theme template source code
+#@Author: Andy-wei.hou
+#@Log:	  Created by Andy-wei.hou 2017.03.22
+#@Ref:	  http://www.net-snmp.org/wiki/index.php/TUT:mib2c_General_Overview
+
+#1. Outline
+#mib2c is the utility that used to auto generate skeleton c code for SNMP MIB. 
+#using "mib2c -c ${transConfigFile} ${mibID}"
+#After generate the c code, you might need to do some modification to ;
+
+
+#1. Install mib2c unility
+It is actually a perl script. 
+#first, install "libperl-dev" in you host PC, then compile net-snmp with option "--with-perl-modules".
+#Ater make install, mib2c will be installed at /usr/local/bin/mib2c
+
+
+#2. using snmptranslate to check your MIB module
+#copy MIB file to system mib dir "/usr/local/share/snmp/mibs/"
+cp ${testMIBFile}  /usr/local/share/snmp/mibs/
+
+#configure enviroments 
+export MIBDIRS=/usr/local/share/snmp/mibs/
+export MIBS="+${testMIBId}"
+
+#check MIB file with snmptranslate
+snmptranslate  -Tp -IR ${objectNameInTestMIBFile}
+
+
+#3. generate source c code by mib2c 
+mib2c -c ${transConfigFile} ${mibObjectName}
+
+#[Note]transConfigFile all stored in "/usr/local/share/snmp/*.conf"
+#[Note]if "-c" option not specificed, mib2c will auto detect MIB files, and ask you to select proper transConfigFile
+#[Note]Warning, mib2c only can translate one type of MIB variablies once, eg "scalar","table","notification"
+#So, if your MIB files contained multiple-variablies type, you have to using "mib2c" to translate one type by one type
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
