@@ -1,5 +1,6 @@
---- netSnmpIETFWGTable.c	2017-03-22 16:54:00.805289100 +0800
-+++ ../netSnmpIETFWGTable.c	2017-03-22 16:53:18.241399700 +0800
+diff -urN table/netSnmpIETFWGTable.c table_bk/netSnmpIETFWGTable.c
+--- table/netSnmpIETFWGTable.c	2017-03-22 17:13:52.593911300 +0800
++++ table_bk/netSnmpIETFWGTable.c	2017-03-22 17:13:03.709257200 +0800
 @@ -7,16 +7,17 @@
  #include <net-snmp/net-snmp-includes.h>
  #include <net-snmp/agent/net-snmp-agent-includes.h>
@@ -186,3 +187,63 @@
                  } else {
                      memcpy( table_entry->nsIETFWGChair2,
                              table_entry->old_nsIETFWGChair2,
+diff -urN table/wgTabAccess.c table_bk/wgTabAccess.c
+--- table/wgTabAccess.c	1970-01-01 08:00:00.000000000 +0800
++++ table_bk/wgTabAccess.c	2017-03-22 17:13:03.711781500 +0800
+@@ -0,0 +1,32 @@
++#include <stdio.h>
++#include <stdlib.h>
++#include "wgTabAccess.h"
++
++
++
++
++/************Global variablies***********/
++WG_TAB_TYPE g_wgTab[TAB_ITEM];
++
++void initWgTab(){
++	int i =0;
++	WG_TAB_TYPE *entry = NULL;
++	for(i = 0; i < TAB_ITEM; i++){
++		entry = &g_wgTab[i];
++		sprintf(entry->name,"name_%d",i);
++		sprintf(entry->chair1,"ch1_%d",i);
++		sprintf(entry->chair2,"ch2_%d",i);
++	}
++}
++
++void updateWgTab(){
++	//Do something here to update the g_wgTab by yourself
++}
++
++
++
++WG_TAB_TYPE *getWgTab(int *item){
++	*item = TAB_ITEM;
++	return g_wgTab;
++}
++
+diff -urN table/wgTabAccess.h table_bk/wgTabAccess.h
+--- table/wgTabAccess.h	1970-01-01 08:00:00.000000000 +0800
++++ table_bk/wgTabAccess.h	2017-03-22 17:13:03.712150000 +0800
+@@ -0,0 +1,19 @@
++#ifndef __WG_TAB_ACCESS_H__
++#define __WG_TAB_ACCESS_H__
++
++#define STR_LEN 10
++#define TAB_ITEM 10
++
++typedef struct{
++	char name[STR_LEN];
++	char chair1[STR_LEN];
++	char chair2[STR_LEN];	
++}WG_TAB_TYPE;
++
++
++extern void initWgTab();
++extern void updateWgTab();
++extern WG_TAB_TYPE *getWgTab(int *item);
++
++
++#endif
+\ 文件尾没有 newline 字符
