@@ -32,6 +32,7 @@ mib2c -c ${transConfigFile} ${mibObjectName}
 
 #[Note]transConfigFile all stored in "/usr/local/share/snmp/*.conf"
 #[Note]if "-c" option not specificed, mib2c will auto detect MIB files, and ask you to select proper transConfigFile
+#[Note]using different transConfigFile will generate different template c code file, you need to select a proper cfg file
 #[Note]Warning, mib2c only can translate one type of MIB variablies once, eg "scalar","table","notification"
 #So, if your MIB files contained multiple-variablies type, you have to using "mib2c" to translate one type by one type
 

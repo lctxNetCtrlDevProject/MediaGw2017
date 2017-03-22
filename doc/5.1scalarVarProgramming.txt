@@ -1,0 +1,53 @@
+#@Desc: This file describe how to using mib2c to generate a template ".c" file to handle scalar type variable from MIB file
+#		And then full fill and implement the auto generated .c file to actually handle snmpget/snmpset request.
+#@Author: Andy-wei.hou
+#@Log:	Created by Andy-wei.hou 2017.03.17
+#@Ref:	net-snmp api struct defination:   http://www.net-snmp.org/dev/agent/annotated.html 
+		net-snmp agent programming examples: http://www.net-snmp.org/dev/agent/examples.html
+
+#1. Generate MIB file, Install it to systemMibDir, configure related enviroments and then using snmptranslate to check the MIB file
+#using NET-SNMP-TUTORIAL-MIB.txt as a example. 
+snmptranslate  -Tp -IR netSnmpTutorialMIB
+
+#+--netSnmpTutorialMIB(4)
+#   |
+#   +--nstMIBObjects(1)
+#   |  |
+#   |  +--nstAgentModules(1)
+#   |     |
+#   |     +-- -RW- Integer32 nstAgentModuleObject(1)
+#   |     +-- -RW- Integer32 nstAgentSubagentObject(2)
+#   |     +-- -RW- Integer32 nstAgentPluginObject(3)
+#   |
+#   +--nstMIBConformance(2)
+
+
+#2. generate a source code using "mib2c.scalar.conf" to generate c code for handle MIB object nstAgentModuleObject
+
+mib2c -c mib2c.scalar.conf nstAgentModuleObject
+#writing to nstAgentModuleObject.h
+#writing to nstAgentModuleObject.c
+#running indent on nstAgentModuleObject.h
+#running indent on nstAgentModuleObject.c
+
+#3. modify nstAgentModuleObject.c to handle get/set options by your own code
+#related modify details are shown on scalar/scalar.patch
+#related referece how to proc get/set ope: http://www.net-snmp.org/dev/agent/delayed_instance_8c-example.html#_a5
+
+#Test
+snmpget -v2c -c public localhost 1.3.6.1.4.1.8072.2.4.1.1.1.0
+#NET-SNMP-EXAMPLES-MIB::netSnmpExamples.4.1.1.1.0 = INTEGER: 0
+
+snmpset -v2c -c public localhost 1.3.6.1.4.1.8072.2.4.1.1.1.0 i 10
+#NET-SNMP-EXAMPLES-MIB::netSnmpExamples.4.1.1.1.0 = INTEGER: 10
+
+snmpget -v2c -c public localhost 1.3.6.1.4.1.8072.2.4.1.1.1.0
+#NET-SNMP-EXAMPLES-MIB::netSnmpExamples.4.1.1.1.0 = INTEGER: 10
+
+
+
+
+
+
+
+
