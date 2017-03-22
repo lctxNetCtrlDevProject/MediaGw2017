@@ -1,0 +1,138 @@
+#@Desc:	net-snmp provide two methods to expend a usr private extension MIB ( through dynamical loadable library or subagent)
+#		The intension of this file is describe how to implement these two ways.
+#@Author: Andy-wei.hou
+#@Log:	Created by Andy-wei.hou 2017.03.21
+#@Warning: As net-snmp firstly developed without supportting multi-thread features, if you using pthread_create() to
+#		   create a multi-thread enviroment, there might be some abnormal problems. 
+#		   At least, according to my test result, in dynamical load lib mode, if you using recvfrom() or select() in
+#	       the thread which created by pthread_create() select() and recvfrom() can't works. 
+#		   But, in subAgent mode, they all work.   ---by Andy-wei.hou
+#
+
+######################## I: USING DYNAMICAL LOADABLE LIBRARY TO EXPEND NET-SNMP##########################
+#Ref:http://www.net-snmp.org/wiki/index.php/TUT:Writing_a_Dynamically_Loadable_Object
+#You can download the src file, MIB file and Make file directly from that page
+
+#1. Create MIB file for your extension ability
+# Generate the MIB file using MG-SOFT or manually, which show at <howToGenerateMIBFiles.txt>
+# Here we use <NET-SNMP-TUTORIAL-MIB.txt > as an example
+
+#2. copy MIB file to your HOST MIB directory 
+
+sudo cp NET-SNMP-TUTORIAL-MIB.txt  /usr/local/share/snmp/mibs/ -rf
+
+# Using snmptranslate to veritify your MIB file
+# Configure enviroments variabies
+export MIBDIRS=/usr/local/share/snmp/mibs/
+export MIBS="+NET-SNMP-TUTORIAL-MIB"
+
+# eg. "snmptranslate -Tp -IR ${mibId}"
+snmptranslate  -Tp -IR netSnmpTutorialMIB
+
+#+--netSnmpTutorialMIB(4)
+#   |
+#   +--nstMIBObjects(1)
+#   |  |
+#   |  +--nstAgentModules(1)
+#   |     |
+#   |     +-- -RW- Integer32 nstAgentModuleObject(1)
+#   |     +-- -RW- Integer32 nstAgentSubagentObject(2)
+#   |     +-- -RW- Integer32 nstAgentPluginObject(3)
+#   |
+#   +--nstMIBConformance(2)
+
+#[Note] The MIB ID "NET-SNMP-TUTORIAL-MIB" can be find at the beginning of NET-SNMP-TUTORIAL-MIB.txt
+#		which follows with key words "DEFINITIONS ::= BEGIN", used to define a MIB ID
+#[Note] snmptranslate used to check a object in MIB file, the object name "netSnmpTutorialMIB" can be any
+#		object name which follows with key word "MODULE-IDENTITY" or " OBJECT IDENTIFIER" or "OBJECT-TYPE"
+
+
+#3. using mib2c to auto generate a .c file to handle the nstAgentPluginObject object in MIB file 
+# eg. "mib2c -c ${transConfigFile} ${mibID}"
+
+mib2c -c mib2c.int_watch.conf nstAgentPluginObject
+
+[Note] there are many mib2c cfg file in /usr/local/share/snmp/mib2c.*.conf, using these different cfg file
+#	   will auto generate different template .c source files.
+#	   detailed description about using mib2c will be given in <howToUseMib2c.txt>
+#here, we using template mib2c.int_watch.conf which the auto generated src file will completely handle the
+#scalar variable nstAgentPluginObject, and do not need any modification.
+
+#4. full fill and Implement the .c file
+#no needed 
+
+#5. compile the .c file to a .so lib file
+#	create the Make file to generate the .so lib. 
+make
+
+#6. config snmpd.conf. using dlmod to load .so file at startup
+#add "dlmod nstAgentPluginObject ${libDir}/xxx.so" in snmpd.conf
+pwd
+#/media/andy/workSpace/lctx_work/NET-SNMP/test-Code/dlLib
+dlmod nstAgentPluginObject /media/andy/workSpace/lctx_work/NET-SNMP/test-Code/dlLib/nstAgentPluginObject.so
+
+#7. start snmpd
+
+snmpd -c ${snmpdCfgFilePath}/snmpd.conf
+
+#[Note] snmpd need a root privilege to startup
+
+#8. Testing
+snmpget -v2c -c public localhost NET-SNMP-TUTORIAL-MIB::nstAgentPluginObject.0
+snmpget -v2c -c public localhost 1.3.6.1.4.1.8072.2.4.1.1.3.0
+#NET-SNMP-EXAMPLES-MIB::netSnmpExamples.4.1.1.3.0 = INTEGER: 0
+
+
+######################## II: USING SUBAGENT TO EXPEND NET-SNMP#############################################
+#Ref: http://www.net-snmp.org/wiki/index.php/TUT:Writing_a_Subagent
+
+#Step_1 To Step_4 are all same with Part_I that generate a src file for dynamical loadable library
+#except we using another object name "nstAgentSubagentObject" to generate the src file
+
+mib2c -c mib2c.int_watch.conf nstAgentSubagentObject
+
+
+#5. Download the main file example-demon.c to the current and modify the main() fun to init all MIB modules
+#	And objects handled by these subAgent
+#	Add "init_nstAgentSubagentObject()" to the main() funs after "init_agent("example-demo")" 
+
+#6. generate the Make file and make
+make
+#[Note] net-snmp-config which shown in Makefile is a script tool used to specific enviroment variablies, link libs, include file during compile.
+#		So, the net-snmp-config must be a proper one for your target. If you compile on host PC, default one is the one; If cross-compile
+#		for your target device, the cross-compile generated one is the proper one.
+#eg, For cross-compile
+#		BUILDAGENTLIBS=`/work/lctx_work/netCtrlDev2017/NET-SNMP/PKG/crossNetSnmp-5.7.3/target/bin/net-snmp-config --agent-libs`
+#	 For Host compile	
+#		BUILDAGENTLIBS=`net-snmp-config --agent-libs`
+
+
+#7. start snmpd with agentx support with root privilege
+snmpd -f -Lo -C --rwcommunity=public --master=agentx
+
+#Turning on AgentX master support.
+#NET-SNMP version 5.7.3
+
+#8. start subAgent with root privilege
+sudo ./example-demon -f -Lo -x
+
+#NET-SNMP version 5.7.3 AgentX subagent connected
+#example-demon is up and running.
+
+
+#9. Testing
+snmpget v2c -c public localhost NET-SNMP-TUTORIAL-MIB::nstAgentSubagentObject.0
+snmpget -v2c -c public localhost 1.3.6.1.4.1.8072.2.4.1.1.2.0
+#NET-SNMP-EXAMPLES-MIB::netSnmpExamples.4.1.1.2.0 = INTEGER: 0
+
+
+
+
+
+
+
+
+
+
+
+

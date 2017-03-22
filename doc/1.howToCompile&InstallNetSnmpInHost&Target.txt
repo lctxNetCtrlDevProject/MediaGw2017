@@ -1,0 +1,212 @@
+#This file Descript how to compile and install net-snmp to your host developping PC and target device.
+#For host using, you need some features that net-snmp support, eg mib2c tools with option "--with-perl-modules" during configure
+#For target using, you need only a basic feature set with pthread support.
+#Created by Andy-wei.hou, 2017.03.15
+
+
+#1. Compile Net-snmp for your host PC
+#step_1, configure and generate make file
+
+./configure --with-persistent-directory="/var/net-snmp" --with-default-snmp-version="2" --with-sys-contact="Andy@china-834.com" --with-sys-location="china" --with-logfile="/var/log/snmpd.log" --with-libs="-lrt -lpthread" --with-perl-modules
+
+#step_2, make; and install
+make; make install
+
+#[Note] "--with-perl-modules" option need "libperl-dev" pre-installed in your PC. If not, will verobe "Build error while make perl module of net-snmp. verb likely "Can't open ../blib/man3/NetSNMP::default_store.3pm"
+#Ubuntu: "sudo apt-get install libperl-dev" 
+#Fedora: "sudo yum install libperl-dev"
+
+
+
+
+
+#2. Compile net-snmp for your target device
+#create a target dir to hold all installed pkts which for target device
+cd .. 
+mkdir target
+target=$(pwd)/target
+
+#configure, make and install
+cd net-snmp-5.7.3_dev
+./configure --host=powerpc-e300c3-linux --prefix=${target} --disable-manuals --disable-ucd-snmp-compatibility --enable-as-needed --disable-embedded-perl --without-perl-modules --disable-snmptrapd-subagent --disable-applications --disable-scripts --enable-mfd-rewrites --with-default-snmp-version="2" --with-sys-contact="Andy@china-834.com" --with-sys-location="china" --with-logfile="/var/log/snmpd.log" --with-persistent-directory="/var/net-snmp" --with-libs="-lrt -lpthread"
+
+make; make install
+
+#[Note] Then snmpd libraries and related MIB files are installed at "${target}/" dir. 
+#the directories in ${target} listed below
+#	.
+#	|-- bin
+#	|   |-- net-snmp-config
+#	|   `-- net-snmp-create-v3-user
+#	|-- include
+#	|   `-- net-snmp
+#	|-- lib
+#	|-- sbin			
+#	|   `-- snmpd
+#	`-- share
+#	    `-- snmp
+#	        `-- mibs
+
+# "snmpd" is the binary exe deamon for your target device
+
+
+
+#3 install net-snmp to your target device
+
+#3.1 create a dir to hold all need ported files
+
+mkdir tag_usr
+
+
+#3.2 Install related Library
+
+mkdir tag_usr/lib
+
+#test all related libs that needed for snmpd execute
+readelf -d ${target}/sbin/snmpd
+#	
+#	 Tag        Type                         Name/Value
+#	 0x00000001 (NEEDED)                     Shared library: [libnetsnmpagent.so.30]
+#	 0x00000001 (NEEDED)                     Shared library: [libnetsnmpmibs.so.30]
+#	 0x00000001 (NEEDED)                     Shared library: [libnetsnmp.so.30]
+#	 0x00000001 (NEEDED)                     Shared library: [libdl.so.2]
+#	 0x00000001 (NEEDED)                     Shared library: [libm.so.6]
+#	 0x00000001 (NEEDED)                     Shared library: [librt.so.1]
+#	 0x00000001 (NEEDED)                     Shared library: [libpthread.so.0]
+#	 0x00000001 (NEEDED)                     Shared library: [libc.so.6]
+#	 0x0000000f (RPATH)                      Library rpath: [/work/SVN/NET-SNMP/PKG/target/lib]
+
+cp ${target}/lib/libnetsnmpagent.so.30 ./tag_usr/lib/ -rf
+cp ${target}/lib/libnetsnmpmibs.so.30 ./tag_usr/lib/ -rf
+cp ${target}/lib/libnetsnmp.so.30 ./tag_usr/lib/ -rf
+
+
+#3.3 Install snmpd 
+mkdir tag_usr/sbin
+cp ${target}/sbin/snmpd tag_usr/sbin/ -rf
+
+#3.3 Install mibs files
+mkdir tag_usr/local
+cp ${target}/share tag_usr/local/ -rf
+
+
+[Note]Now, all the need files are stored at tag_usr dir, which show below
+tree tag_usr/
+#	tag_usr/
+#	|-- lib
+#	|   |-- libnetsnmp.so.30
+#	|   |-- libnetsnmpagent.so.30
+#	|   `-- libnetsnmpmibs.so.30
+#	|-- local
+#	|   `-- share
+#	|       `-- snmp
+#	|           `-- mibs
+#	|               |-- AGENTX-MIB.txt
+#	|               |-- BRIDGE-MIB.txt
+#	|               |-- DISMAN-EVENT-MIB.txt
+#	|               |-- DISMAN-SCHEDULE-MIB.txt
+#	|               |-- DISMAN-SCRIPT-MIB.txt
+#	|               |-- EtherLike-MIB.txt
+#	|               |-- HCNUM-TC.txt
+#	|               |-- HOST-RESOURCES-MIB.txt
+#	|               |-- HOST-RESOURCES-TYPES.txt
+#	|               |-- IANA-ADDRESS-FAMILY-NUMBERS-MIB.txt
+#	|               |-- IANA-LANGUAGE-MIB.txt
+#	|               |-- IANA-RTPROTO-MIB.txt
+#	|               |-- IANAifType-MIB.txt
+#	|               |-- IF-INVERTED-STACK-MIB.txt
+#	|               |-- IF-MIB.txt
+#	|               |-- INET-ADDRESS-MIB.txt
+#	|               |-- IP-FORWARD-MIB.txt
+#	|               |-- IP-MIB.txt
+#	|               |-- IPV6-FLOW-LABEL-MIB.txt
+#	|               |-- IPV6-ICMP-MIB.txt
+#	|               |-- IPV6-MIB.txt
+#	|               |-- IPV6-TC.txt
+#	|               |-- IPV6-TCP-MIB.txt
+#	|               |-- IPV6-UDP-MIB.txt
+#	|               |-- NET-SNMP-AGENT-MIB.txt
+#	|               |-- NET-SNMP-EXAMPLES-MIB.txt
+#	|               |-- NET-SNMP-EXTEND-MIB.txt
+#	|               |-- NET-SNMP-MIB.txt
+#	|               |-- NET-SNMP-PASS-MIB.txt
+#	|               |-- NET-SNMP-TC.txt
+#	|               |-- NET-SNMP-VACM-MIB.txt
+#	|               |-- NOTIFICATION-LOG-MIB.txt
+#	|               |-- RFC-1215.txt
+#	|               |-- RFC1155-SMI.txt
+#	|               |-- RFC1213-MIB.txt
+#	|               |-- RMON-MIB.txt
+#	|               |-- SCTP-MIB.txt
+#	|               |-- SMUX-MIB.txt
+#	|               |-- SNMP-COMMUNITY-MIB.txt
+#	|               |-- SNMP-FRAMEWORK-MIB.txt
+#	|               |-- SNMP-MPD-MIB.txt
+#	|               |-- SNMP-NOTIFICATION-MIB.txt
+#	|               |-- SNMP-PROXY-MIB.txt
+#	|               |-- SNMP-TARGET-MIB.txt
+#	|               |-- SNMP-TLS-TM-MIB.txt
+#	|               |-- SNMP-TSM-MIB.txt
+#	|               |-- SNMP-USER-BASED-SM-MIB.txt
+#	|               |-- SNMP-USM-AES-MIB.txt
+#	|               |-- SNMP-USM-DH-OBJECTS-MIB.txt
+#	|               |-- SNMP-VIEW-BASED-ACM-MIB.txt
+#	|               |-- SNMPv2-CONF.txt
+#	|               |-- SNMPv2-MIB.txt
+#	|               |-- SNMPv2-SMI.txt
+#	|               |-- SNMPv2-TC.txt
+#	|               |-- SNMPv2-TM.txt
+#	|               |-- TCP-MIB.txt
+#	|               |-- TRANSPORT-ADDRESS-MIB.txt
+#	|               |-- TUNNEL-MIB.txt
+#	|               |-- UCD-DEMO-MIB.txt
+#	|               |-- UCD-DISKIO-MIB.txt
+#	|               |-- UCD-DLMOD-MIB.txt
+#	|               |-- UCD-IPFWACC-MIB.txt
+#	|               |-- UCD-SNMP-MIB.txt
+#	|               `-- UDP-MIB.txt
+#	`-- sbin
+#	    `-- snmpd
+
+ 
+#3.5 Generate a configure file snmpd.conf  for your target
+#Content of snmpd.conf are stored at currentdir
+cp snmpd.conf tag_usr/local/share/snmp/ -rf
+
+#3.5 Copy "tag_usr/*" to your target device "/usr/" dir
+
+
+#3.6 On target Execute snmpd with script:
+snmpd -c /usr/local/share/snmp/snmpd.conf -M /usr/local/share/snmp/mibs
+
+#then check the start log of snmpd
+cat /var/log/snmpd.log 
+#	Created directory: /var/net-snmp
+#	Created directory: /var/net-snmp/mib_indexes
+#	Turning on AgentX master support.
+#	Created directory: /var/agentx
+#	NET-SNMP version 5.7.3
+
+
+#using snmpget tools in host PC to test snmpd work status.
+#PC: 192.168.15.234; DEV: 192.168.15.23
+
+snmpget -v2c -c public 192.168.15.23 SNMPv2-MIB::sysLocation.0
+#	SNMPv2-MIB::sysLocation.0 = STRING: china
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
