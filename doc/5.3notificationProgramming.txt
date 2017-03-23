@@ -1,0 +1,148 @@
+#@Desc:	snmptrap(notification or inform) mechanism is that device directly sends signal to the network manager to inform some abnormal
+#		conditions. It is not likely most other snmp network flow(snmpget/snmpset/snmpwalk,eg) that all started from network manager.
+#		the destionation that snmptrap sendto is configured in snmpd.conf.
+#		In this file, firstly, setup snmptrap testing enviroment by using snmptrapd and snmptrap unitility; then introduce snmp-notification
+#		programing.
+#@Author: Andy-wei.hou
+#@Log:	Created by Andy-wei.hou 2017.03.23
+#@Ref: 	http://www.net-snmp.org/wiki/index.php/TUT:snmptraps
+		
+
+#1. Testing Enviroment setup
+#1.1 Configure snmptrap dest destionation
+#Add configurations in /usr/local/etc/snmp/snmpd.conf to configure the destinations of send_easy_trap(),send_v2trap(),netsnmp_send_traps()
+# From: http://www.net-snmp.org/wiki/index.php/FAQ:Agent_17
+# 
+##--------Contents Add to snmpd.conf-------##
+# send v1 traps
+trapsink   127.0.0.1:162
+trapsink   192.168.8.10:162
+# also send v2 traps
+# confiuration determined the destionation of send_v2trap(), snmp will fork the trap to all destinations
+trap2sink  127.0.0.1:162
+trap2sink  192.168.8.10:162
+informsink 127.0.0.1:162
+informsink 192.168.8.10:162
+
+
+#1.2 install testing MIB file
+cp NET-SNMP-EXAMPLES-MIB.txt /usr/local/share/snmp/mibs/
+export MIBDIRS=/usr/local/share/snmp/mibs/
+export MIBS="+ET-SNMP-EXAMPLES-MIB"
+snmptranslate -Tp -IR netSnmpExampleHeartbeatNotification
+#	+--netSnmpExampleHeartbeatNotification(1)
+
+
+#1.3 Local start snmptrapd to listen and receive trap from agent
+#Add below lines to /usr/local/etc/snmp/snmptrapd.conf
+/**********Content Add to snmptrapd.conf**********/
+authCommunity log,execute,net public 
+
+#start snmptrapd with root priviledge
+snmptrapd -df -Lo -c /usr/local/etc/snmp/snmptrapd.conf
+
+#[Note]if *:162 port occupied by some tsk, using "sudo netstate -anp | grep 162" to find the tsk and killed it by root before start snmptrapd
+
+
+
+#1.4 using snmptrap to send trap
+snmptrap -v 1 -c public localhost NET-SNMP-EXAMPLES-MIB::netSnmpExampleHeartbeatNotification "" 6 17 ""  netSnmpExampleHeartbeatRate i 123456
+
+#snmptrapd side verbose:
+#		Received 60 byte packet from UDP: [127.0.0.1]:48492->[127.0.0.1]:162
+#		0000: 30 3A 02 01  00 04 06 70  75 62 6C 69  63 A4 2D 06    0:.....public.-.
+#		0016: 05 2A 03 04  05 06 40 04  C0 C1 C2 C3  02 01 06 02    .*....@.........
+#		0032: 01 63 43 01  37 30 15 30  13 06 05 33  0C 0D 0E 0F    .cC.70.0...3....
+#		0048: 04 0A 74 65  73 74 73 74  72 69 6E 67                 ..teststring
+#
+#		2017-03-23 10:08:48 192.193.194.195(via UDP: [127.0.0.1]:48492->[127.0.0.1]:162) TRAP, SNMP v1, community public
+#			iso.2.3.4.5.6 Enterprise Specific Trap (99) Uptime: 0:00:00.55
+#			iso.11.12.13.14.15 = STRING: "teststring"
+#
+#		Received 67 byte packet from UDP: [127.0.0.1]:40029->[127.0.0.1]:162
+#		0000: 30 41 02 01  00 04 06 70  75 62 6C 69  63 A4 34 06    0A.....public.4.
+#		0016: 0B 2B 06 01  04 01 BF 08  02 03 00 01  40 04 C0 A8    .+..........@...
+#		0032: 01 7B 02 01  06 02 01 11  43 03 08 E9  5E 30 14 30    .{......C...^0.0
+#		0048: 12 06 0B 2B  06 01 04 01  BF 08 02 03  02 01 02 03    ...+............
+#		0064: 01 E2 40                                              ..@
+#
+#		2017-03-23 10:12:08 192.168.1.123(via UDP: [127.0.0.1]:40029->[127.0.0.1]:162) TRAP, SNMP v1, community public
+#			NET-SNMP-EXAMPLES-MIB::netSnmpExampleHeartbeatNotification Enterprise Specific Trap (17) Uptime: 1:37:20.30
+#			NET-SNMP-EXAMPLES-MIB::netSnmpExampleHeartbeatRate = INTEGER: 123456
+
+snmptrap -v2c -c public localhost "" NET-SNMP-EXAMPLES-MIB::netSnmpExampleHeartbeatNotification netSnmpExampleHeartbeatRate i 123456
+
+#snmptrapd side verbose:
+#		Received 93 byte packet from UDP: [127.0.0.1]:50229->[127.0.0.1]:162
+#		0000: 30 5B 02 01  01 04 06 70  75 62 6C 69  63 A7 4E 02    0[.....public.N.
+#		0016: 04 65 3B 20  5C 02 01 00  02 01 00 30  40 30 0F 06    .e; \......0@0..
+#		0032: 08 2B 06 01  02 01 01 03  00 43 03 09  7B B8 30 19    .+.......C..{.0.
+#		0048: 06 0A 2B 06  01 06 03 01  01 04 01 00  06 0B 2B 06    ..+...........+.
+#		0064: 01 04 01 BF  08 02 03 00  01 30 12 06  0B 2B 06 01    .........0...+..
+#		0080: 04 01 BF 08  02 03 02 01  02 03 01 E2  40             ............@
+#
+#		2017-03-23 10:18:23 localhost [UDP: [127.0.0.1]:50229->[127.0.0.1]:162]:
+#		DISMAN-EVENT-MIB::sysUpTimeInstance = Timeticks: (621496) 1:43:34.96	SNMPv2-MIB::snmpTrapOID.0 = OID: NET-SNMP-EXAMPLES-MIB::netSnmpExampleHeartbeatNotification	NET-SNMP-EXAMPLES-MIB::netSnmpExampleHeartbeatRate = INTEGER: 123456
+
+
+#2. snmptrap programming
+#Before programming, you have to doing the checklist
+#	a) configure snmptrapd.conf on your network manager and with snmptrapd started
+#	b) configure snmpd.conf on your device so that snmptrap can send to a proper destionation
+#	c) install relate MIB file to your host PC with enviroment variablies configured(here we use netSnmpExampleHeartbeatNotification in NET-SNMP-EXAMPLES-MIB.txt)
+
+#2.1 using mib2c.notify.conf to generate source c code
+mib2c -c mib2c.notify.conf  netSnmpExampleHeartbeatNotification
+
+#		writing to netSnmpExampleHeartbeatNotification.h
+#		writing to netSnmpExampleHeartbeatNotification.c
+#		running indent on netSnmpExampleHeartbeatNotification.c
+#		running indent on netSnmpExampleHeartbeatNotification.h
+
+#2.2 modify c code file
+#shown at notification.patch
+
+#2.3 make
+make
+
+
+#2.4 test
+#start snmpd first
+sudo snmpd -c &
+
+#start subAgent
+sudo ./example-demon
+
+#subAgent side verbose:
+#		NET-SNMP version 5.7.3 AgentX subagent connected
+#		example-demon is up and running.
+#		Example_notification, defining the trap 
+#
+#snmptrapd side verbose:
+#		Received 127 byte packet from UDP: [127.0.0.1]:44958->[127.0.0.1]:162
+#		0000: 30 7D 02 01  01 04 06 70  75 62 6C 69  63 A6 70 02    0}.....public.p.
+#		0016: 04 0F 5C 9E  18 02 01 00  02 01 00 30  62 30 0E 06    ..\........0b0..
+#		0032: 08 2B 06 01  02 01 01 03  00 43 02 28  0D 30 19 06    .+.......C.(.0..
+#		0048: 0A 2B 06 01  06 03 01 01  04 01 00 06  0B 2B 06 01    .+...........+..
+#		0064: 04 01 BF 08  02 03 00 01  30 11 06 0C  2B 06 01 04    ........0...+...
+#		0080: 01 BF 08 02  03 02 01 00  02 01 13 30  22 06 0C 2B    ...........0"..+
+#		0096: 06 01 04 01  BF 08 02 03  02 02 00 04  12 41 20 67    .............A g
+#		0112: 69 72 6C 20  6E 61 6D 65  64 20 4D 61  72 69 61       irl named Maria
+#
+#		2017-03-23 10:42:06 localhost [UDP: [127.0.0.1]:44958->[127.0.0.1]:162]:
+#		DISMAN-EVENT-MIB::sysUpTimeInstance = Timeticks: (10253) 0:01:42.53	SNMPv2-MIB::snmpTrapOID.0 = OID: NET-SNMP-EXAMPLES-MIB::netSnmpExampleHeartbeatNotification	NET-SNMP-EXAMPLES-MIB::netSnmpExampleHeartbeatRate.0 = INTEGER: 19	NET-SNMP-EXAMPLES-MIB::netSnmpExampleHeartbeatName.0 = STRING: A girl named Maria
+#
+#		Sending 127 bytes to UDP: [127.0.0.1]:44958->[127.0.0.1]:162
+#		0000: 30 7D 02 01  01 04 06 70  75 62 6C 69  63 A2 70 02    0}.....public.p.
+#		0016: 04 0F 5C 9E  18 02 01 00  02 01 00 30  62 30 0E 06    ..\........0b0..
+#		0032: 08 2B 06 01  02 01 01 03  00 43 02 28  0D 30 19 06    .+.......C.(.0..
+#		0048: 0A 2B 06 01  06 03 01 01  04 01 00 06  0B 2B 06 01    .+...........+..
+#		0064: 04 01 BF 08  02 03 00 01  30 11 06 0C  2B 06 01 04    ........0...+...
+#		0080: 01 BF 08 02  03 02 01 00  02 01 13 30  22 06 0C 2B    ...........0"..+
+#		0096: 06 01 04 01  BF 08 02 03  02 02 00 04  12 41 20 67    .............A g
+#		0112: 69 72 6C 20  6E 61 6D 65  64 20 4D 61  72 69 61       irl named Maria
+#
+
+
+
+
