@@ -1,0 +1,14 @@
+#@Desc:	MIB file is a tree struct that using to descript all handled object(OID) that snmp agent handled.
+#		It is a ASSIC descripted file which can be created manually or by some tools
+#		Here we use MG-SOFT to create MIB file for your project
+#@Author: Andy-wei.hou
+#@Log:	Created by Andy-wei.hou 2017.03.23
+
+#Ref to 使用MG-SOFT的MIB_Builder+编写mib文件.txt
+
+
+#Before using it, you need installed MG-SOFT MIB Browser v10b破解版.rar on your PC (windows only)
+#Then follows the instructions in 使用MG-SOFT的MIB_Builder+编写mib文件.txt to generate your MIB file
+
+
+#after MIB file generated, you can install it, using mib2c to create template handle source code, etc.
