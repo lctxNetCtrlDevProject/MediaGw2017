@@ -146,20 +146,16 @@ int  paraFileProcFun(unsigned char *buf, int len){
 	for (i = 0; strlen(tagList[i].name); i++)
 	{
 		for (j = 0; j < len; j++) {
-			if (buf[j] >= 97 && buf[j] <= 122) {
-				ret = memcmp(&buf[j], &tagList[i], 6);
-				if (ret == 0) { //find tag
-					ret = tagList[i].callback(&buf[j]+6, 0);
-					sleep(1);
-					if (ret) {
-						printf("tag:%s callback error\n", tagList[i].name);
-						return -1;
-					}
+			ret = memcmp(&buf[j], &tagList[i], 6);
+			if (ret == 0) { //find tag
+				ret = tagList[i].callback(&buf[j]+6, 0);
+				if (ret) {
+					printf("tag:%s callback error\n", tagList[i].name);
+					return -1;
+				}
 
-					break;
-				} 
-					
-			}
+				break;
+			} 						
 		}
 		
 		if (j == len) {
@@ -206,16 +202,11 @@ int  paraFileProcFun(unsigned char *buf, int len){
 int paraClrFun(){
 	DBGX("clr dev paras");
 	Board_Mng_DelAll_User_Num();
-	usleep(100*1000);
 	Board_Mng_Meet_DelAll();
-	usleep(100*1000);
 	Board_Mng_ZX_DelAll();
 	Board_Mng_IPIntf_Addr_DelAll();
-	sleep(2);
 	Board_Mng_StRt_DelAll();
-	sleep(1);
 	Board_Mng_Lyjh_DelAll();
-	sleep(1);
 	return 0;
 }
 
@@ -231,6 +222,9 @@ void ParaInject(){
 	devID.dev_seq = 0x0002;
 
 #endif
+
+	initQueryEvent(1);
+
 	if(initParaInjectAgent(&devID,paraFileProcFun,paraClrFun) < 0 ){
 		exit(0);
 	}

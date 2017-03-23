@@ -1,0 +1,12 @@
+objects = main.o condTimedWait.o
+
+test:$(objects)
+	gcc -o test $(objects) -lpthread -lrt
+
+
+clean:
+	rm *.o test -f
+
+
+all:
+	make clean; make

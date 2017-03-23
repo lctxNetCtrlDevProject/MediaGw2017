@@ -20,7 +20,7 @@ $(shell if [ -f $(TARGET_TEMPDIR) ]; then echo "exist"; else mkdir -p target; fi
 #===================target PPC==============================
 ifeq ($(TARGETCPU),ppc)
 
-CROSS_COMPILER ?= powerpc-linux-
+CROSS_COMPILER ?= /opt/MPC83xx/bin/powerpc-e300c3-linux-
 
 TARGET=MEDIUM_GATEWAY
 
@@ -44,6 +44,7 @@ CFLAG=		-mpowerpc \
 
 		
 LNKFLAG=	-lpthread \
+		-lrt \
 		-lresolv \
 		-lcrypt \
 		-avoid-version \
@@ -71,6 +72,7 @@ LNKFLAG=	-lpthread \
 		-lresolv \
 		-lcrypt \
 		-avoid-version \
+		-lrt\
 		-export-dynamic
 
 EXTERN_OBJ=
@@ -156,6 +158,19 @@ INCLUDES += $(SPACE)
 INCLUDES += -I$(paraInjectAgent_PATH)
 #===========================================================
 
+#=========================condThreadSync=============================
+condThreadSync_PATH=	$(TOP_DIR)/condThreadSync
+condThreadSyncCSRCS=	condTimedWait.c
+		
+condThreadSync_COBJS := $(condThreadSyncCSRCS:%.c=%.o)
+
+condThreadSync_PATHCSRCS :=$(condThreadSync_CSRCS:$(condThreadSync_PATH)/%)
+condThreadSync_PATHCOBJS :=$(condThreadSync_COBJS:%=$(TARGET_TEMPDIR)/%)
+
+INCLUDES += $(SPACE)
+INCLUDES += -I$(condThreadSync_PATH)
+#===========================================================
+
 #===========================SIPAG===========================
 #SIPAG_PATH= $(TOP_DIR)/sipag
 #SIPAGCSRCS= acl.c \
@@ -172,8 +187,8 @@ INCLUDES += -I$(paraInjectAgent_PATH)
 #===========================================================
 
 
-$(TARGET): $(MAIN_PATHCOBJS) $(AC491_PATHCOBJS) $(paraInjectAgent_PATHCOBJS) $(EXTERN_OBJ) $(BASIC_PATHCOBJS)
-	$(CC) $(MAIN_PATHCOBJS) $(AC491_PATHCOBJS) $(paraInjectAgent_PATHCOBJS) $(EXTERN_OBJ) $(BASIC_PATHCOBJS)  -o $(TARGET_PROG) $(LNKFLAG)
+$(TARGET): $(MAIN_PATHCOBJS) $(AC491_PATHCOBJS) $(paraInjectAgent_PATHCOBJS) $(condThreadSync_PATHCOBJS) $(EXTERN_OBJ) $(BASIC_PATHCOBJS)
+	$(CC) $(MAIN_PATHCOBJS) $(AC491_PATHCOBJS) $(paraInjectAgent_PATHCOBJS) $(condThreadSync_PATHCOBJS) $(EXTERN_OBJ) $(BASIC_PATHCOBJS)  -o $(TARGET_PROG) $(LNKFLAG)
 	
 $(MAIN_PATHCOBJS): $(MAIN_PATHCSRCS)
 	$(PRE_CC) $(CC) $(CFLAG) -c -o $@ $(MAIN_PATH)/$(*F).c
@@ -183,6 +198,9 @@ $(AC491_PATHCOBJS): $(AC491_PATHCSRCS)
 
 $(paraInjectAgent_PATHCOBJS): $(paraInjectAgent_PATHCSRCS)
 	$(PRE_CC) $(CC) $(CFLAG) -c -o $@ $(paraInjectAgent_PATH)/$(*F).c
+
+$(condThreadSync_PATHCOBJS): $(condThreadSync_PATHCSRCS)
+	$(PRE_CC) $(CC) $(CFLAG) -c -o $@ $(condThreadSync_PATH)/$(*F).c
 
 $(BASIC_PATHCOBJS): $(BASIC_PATHCSRCS)
 	$(PRE_CC) $(CC) $(CFLAG) -c -o $@ $(SRC_PATH)/$(*F).c
