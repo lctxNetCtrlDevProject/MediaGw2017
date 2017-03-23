@@ -8,8 +8,62 @@
 #include "716MngProto.h"
 
 
-
 extern int32 Board_Mng_SendTo_716(uint8 *buf, int32 len);
+
+typedef struct
+{
+	uint8 cmdId;
+	uint8 replyId;
+} ZWCmdReplyMap;
+
+ZWCmdReplyMap ZWCmdReplyArray[] = {
+	ZW_INFO_TYPE_USR_CFG, ZW_INFO_TYPE_USR_CFG_ACK,
+	ZW_INFO_TYPE_CONF_CFG, ZW_INFO_TYPE_CONF_CFG_ACK,
+	ZW_INFO_TYPE_ZXRX_CFG, ZW_INFO_TYPE_ZXRX_CFG_ACK,
+
+	ZW_INFO_TYPE_IPINTF_ADDR_CFG, ZW_INFO_TYPE_IPINTF_ADDR_CFG_ACK,
+	ZW_INFO_TYPE_IPINTF_ROUTE_CFG, ZW_INFO_TYPE_IPINTF_ROUTE_CFG_ACK,
+	ZW_INFO_TYPE_IP_AS_CFG, ZW_INFO_TYPE_IP_AS_CFG_ACK,
+	ZW_INFO_TYPE_IP_CFG, ZW_INFO_TYPE_IP_CFG_ACK,
+	ZW_INFO_TYPE_DEVID_CFG, ZW_INFO_TYPE_DEVID_CFG_ACK,
+	ZW_INFO_TYPE_ARMYID_CFG, ZW_INFO_TYPE_ARMYID_CFG_ACK,
+	ZW_INFO_TYPE_PHONENUM_LEN_CFG, ZW_INFO_TYPE_PHONENUM_LEN_CFG_ACK,
+	ZW_INFO_TYPE_SPEECH_ENCODE_CFG, ZW_INFO_TYPE_SPEECH_ENCODE_CFG_ACK,
+
+	ZW_INFO_TYPE_INTF_TYPE_CFG, ZW_INFO_TYPE_INTF_TYPE_CFG_ACK,
+	ZW_INFO_TYPE_INTF_SPEED_CFG, ZW_INFO_TYPE_INTF_SPEED_CFG_ACK,
+	ZW_INFO_TYPE_INTF_MODE_CFG, ZW_INFO_TYPE_INTF_MODE_CFG_ACK,
+	ZW_INFO_TYPE_INTF_CLK_CFG, ZW_INFO_TYPE_INTF_CLK_CFG_ACK,
+	ZW_INFO_TYPE_INTF_LOOP_CFG, ZW_INFO_TYPE_INTF_LOOP_CFG_ACK,
+	ZW_INFO_TYPE_INTF_MASTER_CFG, ZW_INFO_TYPE_INTF_MASTER_CFG_ACK,
+
+
+	ZW_INFO_TYPE_ST_RT_CFG, ZW_INFO_TYPE_ST_RT_CFG_ACK,
+	ZW_INFO_TYPE_LYCFF_CFG, ZW_INFO_TYPE_LYCFF_CFG_ACK,
+	ZW_INFO_TYPE_FRP_CFG, ZW_INFO_TYPE_FRP_CFG_ACK,
+	ZW_INFO_TYPE_TIRP_CFG, ZW_INFO_TYPE_TIRP_CFG_ACK,
+	ZW_INFO_TYPE_LYJH_CFG, ZW_INFO_TYPE_LYJH_CFG_ACK,
+	ZW_INFO_TYPE_RADIO_INTF_CFG, ZW_INFO_TYPE_RADIO_INTF_CFG_ACK,
+	
+	ZW_INFO_TYPE_FIBR_STA_CFG, ZW_INFO_TYPE_FIBR_STA_CFG_ACK,
+	ZW_INFO_TYPE_FIBR_INTF_CFG, ZW_INFO_TYPE_FIBR_INTF_CFG_ACK,
+	ZW_INFO_TYPE_FIBR_YW_CFG, ZW_INFO_TYPE_FIBR_YW_CFG_ACK,
+};
+
+unsigned char get716RespOrder(unsigned char queryOrder){
+	int i;
+
+	for (i = 0; i < sizeof(ZWCmdReplyArray)/sizeof(ZWCmdReplyArray[0]); i++) {
+		if (queryOrder == ZWCmdReplyArray[i].cmdId)
+			return ZWCmdReplyArray[i].replyId;
+		}
+
+	printf("%s, cann't find queryOrder! ERROR! \r\n", __func__);
+	
+	return queryOrder;	
+}
+
+
 
 //------------------------------------------------------------------------------
 
@@ -49,6 +103,8 @@ static void sendMsgTo716Board(uint8 *pMsg, int size){
 
 	len = sizeof(ST_HF_MGW_DCU_PRO_HEADER) + Regmsg.header.data_len;	
 	Board_Mng_SendTo_716((uint8 *)&Regmsg, len);
+
+	waitQueryEventTimed(get716RespOrder(pMsg[0]), 1000*2);//pMsg[0]:InfoType, is wait condition
 }
 
 static void sendMsgTo716Ray(uint8 msgId, uint8 *pMsg, int size){
@@ -69,6 +125,7 @@ static void sendMsgTo716Ray(uint8 msgId, uint8 *pMsg, int size){
 	len = sizeof(ST_RAY_MNG_HEADER) + Regmsg.header.data_len;
 
 	Board_Mng_SendTo_716_Ray((uint8 *)&Regmsg, len);
+	waitQueryEventTimed(get716RespOrder(msgId), 1000*2);
 }
 
 
@@ -79,7 +136,7 @@ int Board_Mng_716_Set_Dev_Id(uint8 DevType, uint16 DevId)
 	MNG_ZW_DEV_ID_MSG ZxCmd;
 	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
 
-	ZxCmd.InfoType = 0x91;
+	ZxCmd.InfoType = ZW_INFO_TYPE_DEVID_CFG;
 	ZxCmd.CmdLen = 0x03;
 	ZxCmd.DevType = DevType;
 	ZxCmd.DevId = htons(DevId);
@@ -98,7 +155,7 @@ int Board_Mng_716_Set_Army_Id(uint16 Id)
 	MNG_ZW_ARMY_ID_MSG ZxCmd;
 	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
 
-	ZxCmd.InfoType = 0x92;
+	ZxCmd.InfoType = ZW_INFO_TYPE_ARMYID_CFG;
 	ZxCmd.CmdLen = 0x02;
 	ZxCmd.ArmyId = htons(Id);
 	
@@ -115,7 +172,7 @@ int Board_Mng_716_Set_Num_Len(uint8 NumLen)
 	MNG_ZW_NUM_LEN_MSG ZxCmd;
 	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
 
-	ZxCmd.InfoType = 0x93;
+	ZxCmd.InfoType = ZW_INFO_TYPE_PHONENUM_LEN_CFG;
 	ZxCmd.CmdLen = 0x02;
 	ZxCmd.NumLen = NumLen;
 	
@@ -133,7 +190,7 @@ int Board_Mng_716_Set_Speech_Encode(uint8 mode)
 	MNG_ZW_SPEECH_ENCODE_MSG ZxCmd;
 	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
 
-	ZxCmd.InfoType = 0x94;
+	ZxCmd.InfoType = ZW_INFO_TYPE_SPEECH_ENCODE_CFG;
 	ZxCmd.CmdLen = 0x02;
 	ZxCmd.Mode = mode;
 	
@@ -171,7 +228,7 @@ int Board_Mng_Set_Inf_Type(uint8 PortId, uint8 Type)
 	MNG_ZW_INF_TYPE_MSG ZxCmd;
 	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
 
-	ZxCmd.InfoType = 0x96;
+	ZxCmd.InfoType = ZW_INFO_TYPE_INTF_TYPE_CFG;
 	ZxCmd.CmdLen = 0x02;
 	ZxCmd.PortId = PortId;
 	ZxCmd.Type = Type;
@@ -189,7 +246,7 @@ int Board_Mng_Set_Inf_Speed(uint8 PortId, uint8 Speed)
 	MNG_ZW_INF_SPEED_MSG ZxCmd;
 	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
 
-	ZxCmd.InfoType = 0x98;
+	ZxCmd.InfoType = ZW_INFO_TYPE_INTF_SPEED_CFG;
 	ZxCmd.CmdLen = 0x02;
 	ZxCmd.PortId = PortId;
 	ZxCmd.PortSpeed = Speed;
@@ -206,7 +263,7 @@ int Board_Mng_Set_Inf_Mode(uint8 PortId, uint8 Mode)
 	MNG_ZW_INF_Mode_MSG ZxCmd;
 	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
 
-	ZxCmd.InfoType = 0x9a;
+	ZxCmd.InfoType = ZW_INFO_TYPE_INTF_MODE_CFG;
 	ZxCmd.CmdLen = 0x02;
 	ZxCmd.PortId = PortId;
 	ZxCmd.Mode = Mode;
@@ -224,7 +281,7 @@ int Board_Mng_Set_Inf_Clk(uint8 PortId, uint8 Clk)
 	MNG_ZW_INF_Clk_MSG ZxCmd;
 	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
 
-	ZxCmd.InfoType = 0x9f;
+	ZxCmd.InfoType = ZW_INFO_TYPE_INTF_CLK_CFG;
 	ZxCmd.CmdLen = 0x02;
 	ZxCmd.PortId = PortId;
 	ZxCmd.PortClk = Clk;
@@ -240,7 +297,7 @@ int Board_Mng_Set_Inf_SM(uint8 PortId, uint8 Master)
 	MNG_ZW_INF_SM_MSG ZxCmd;
 	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
 
-	ZxCmd.InfoType = 0xb4;
+	ZxCmd.InfoType = ZW_INFO_TYPE_INTF_MASTER_CFG;
 	ZxCmd.CmdLen = 0x02;
 	ZxCmd.PortId = PortId;
 	ZxCmd.Master = Master;
@@ -256,7 +313,7 @@ int Board_Mng_Set_Inf_Huanhui(uint8 PortId, uint8 Huanhui)
 	MNG_ZW_INF_HH_MSG ZxCmd;
 	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
 
-	ZxCmd.InfoType = 0xa5;
+	ZxCmd.InfoType = ZW_INFO_TYPE_INTF_LOOP_CFG;
 	ZxCmd.CmdLen = 0x02;
 	ZxCmd.PortId = PortId;
 	ZxCmd.Huanhui = Huanhui;
@@ -295,7 +352,6 @@ int qlintf_cb(unsigned char *buf, int len) {
 		Board_Mng_Set_Inf_Clk(msg[i].id, msg[i].clk);
 		Board_Mng_Set_Inf_SM(msg[i].id, msg[i].master);
 		Board_Mng_Set_Inf_Huanhui(msg[i].id, msg[i].huanhui);
-		sleep(1);
 	}
 
 	return 0;
@@ -303,6 +359,7 @@ int qlintf_cb(unsigned char *buf, int len) {
 
 int Board_Mng_DelAll_User_Num()
 {
+#if 0
 	ST_HF_MGW_DCU_PRO Regmsg;
 	MNG_ZW_USR_CFG_PKT ZxCmd;
 	int len = 0;
@@ -326,6 +383,17 @@ int Board_Mng_DelAll_User_Num()
 
 	len = sizeof(ST_HF_MGW_DCU_PRO_HEADER) + 7;//Regmsg.header.data_len;	
 	Board_Mng_SendTo_716((uint8 *)&Regmsg, len);
+#else
+	MNG_ZW_USR_CFG_PKT ZxCmd;
+
+	ZxCmd.header.InfoType = ZW_INFO_TYPE_USR_CFG;
+	ZxCmd.header.CmdLen = 4;
+	ZxCmd.CmdId = ZW_USR_ALL_NUM;	
+	ZxCmd.OpMode = ZW_USR_DEL;
+	ZxCmd.MsgLen = 1;
+	ZxCmd.Ack = 1;
+	sendMsgTo716Board(&ZxCmd, 7);
+#endif
 
 	return 0;
 }
@@ -333,6 +401,7 @@ int Board_Mng_DelAll_User_Num()
 
 int Board_Mng_Set_User_Num(uint8 *pUsrNum, uint16 SecurityNum, uint8 channel)
 {
+#if 0
 	ST_HF_MGW_DCU_PRO Regmsg;
 	MNG_ZW_USR_CFG_PKT ZxCmd;
 	int len = 0;
@@ -362,7 +431,21 @@ int Board_Mng_Set_User_Num(uint8 *pUsrNum, uint16 SecurityNum, uint8 channel)
 
 	len = sizeof(ST_HF_MGW_DCU_PRO_HEADER) + Regmsg.header.data_len;	
 	Board_Mng_SendTo_716((uint8 *)&Regmsg, len);
+#else
+	MNG_ZW_USR_CFG_PKT ZxCmd;
 
+	ZxCmd.header.InfoType = ZW_INFO_TYPE_USR_CFG;
+	ZxCmd.header.CmdLen = 33;
+	ZxCmd.CmdId = ZW_USR_NUM_SPEC;	
+	ZxCmd.OpMode = ZW_USR_REG;
+	ZxCmd.MsgLen = 30;
+	ZxCmd.Ack = 1;
+	memcpy(ZxCmd.UserNum,pUsrNum,4);
+	ZxCmd.SecurityNum = SecurityNum;
+	ZxCmd.ChannelId = channel;//此项必须有
+
+	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
+#endif
 	return 0;
 }
 
@@ -384,7 +467,7 @@ int usrnum_cb(unsigned char *buf, int len) {
 		pUsrNum =&buf[2+i*7];
 		secNum = htons(*(uint16 *)(&buf[1+1+i*7+4]));
 		Board_Mng_Set_User_Num(pUsrNum,secNum, channel);
-		usleep(200 * 1000);		
+		DBG("%s, num%d\r\n", __func__, i);
 	}
 
 	return 0;
@@ -689,12 +772,6 @@ int linepa_cb(unsigned char *buf, int len) {
 	return 0;
 }
 
-int tdhjys_cb(unsigned char *buf, int len) {
-	dump_buf(__func__, buf, 0);
-
-	return 0;
-}
-
 int Board_Mng_RadioIntf_Cfg(uint8 port, uint8 portType, uint8 workMod)
 {
 	MNG_ZW_RADIO_INTF_CFG_PKT ZxCmd;
@@ -767,8 +844,6 @@ int ippara_cb(unsigned char *buf, int len) {
 
 	Board_Mng_IP_Cfg(ipaddr, mask);
 	Board_Mng_IPAs_Cfg(asNum);
-
-	sleep(2);
 	
 	return 0;
 }
@@ -861,10 +936,8 @@ int ipintf_cb(unsigned char *buf, int len) {
 		mtu 	 = ntohl(*(uint32 *)(pIpIntfCfg+12));
 
 		Board_Mng_IPIntf_Addr_Cfg(port,addrMod,ipaddr,mask);
-		sleep(1);
 		Board_Mng_IPIntf_Route_Cfg(port,route,group);
-		sleep(1);
-		DBG("--sleep-- 1s \r\n");//wait for 716 process
+
 	}
 
 	DBG(">>>>>>>>>>>>%s<<<<<<<<<<<<<end \r\n", __func__);
@@ -908,6 +981,7 @@ int frppar_cb(unsigned char *buf, int len) {
 		qltEn = *(pFrpCfg+6);
 		spfgEn = *(pFrpCfg +7);
 		Board_Mng_Ffp_Cfg( port, helloT, holdT, qltEn, spfgEn);
+		DBG("%s, num%d\r\n", __func__, i);
 	}
 			
 	return 0;
@@ -973,7 +1047,6 @@ int Board_Mng_Lycff_Cfg(
 	ZxCmd.frpAS = htonl(frpAs);
 
 	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
-	usleep(200*1000);
 	
 	return 0;
 }
@@ -1008,13 +1081,14 @@ int Board_Mng_Lyjh_Del(uint8 port)
 	ZxCmd.ope = 3;
 	
 	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
+	DBG("%s port%d\r\n", __func__, port);
 	return 0;
 }
 
 int Board_Mng_Lyjh_DelAll()
 {
 	int i;
-	for (i = 0; i < 16; i++)
+	for (i = 1; i <= 0xf; i++)
 		Board_Mng_Lyjh_Del(i);
 	
 	return 0;
@@ -1295,7 +1369,7 @@ int DisplayBoardShowVersion()
 	msg.body[4] = 86; //V
 	msg.body[5] = 48;	//0
 	msg.body[6] = 46; //.
-	msg.body[7] = 49; // 1
+	msg.body[7] = 50; // 2
 	Board_Mng_SendTo_Display(&msg, msg.total_len);
 
 	return 0;

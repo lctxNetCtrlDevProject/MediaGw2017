@@ -1,0 +1,90 @@
+#include <stdio.h>
+#include <sys/time.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/socket.h> 
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <strings.h>
+
+
+#include "condTimedWait.h"
+
+
+void rcvProcFun(){
+	int fd = -1;
+	struct sockaddr_in addr;
+	struct sockaddr_in rAddr;
+	int 			rAddrLen;
+	unsigned char buf[500];
+	int iRet = -1;
+	
+	rAddrLen = sizeof(rAddr);
+	
+	/*init socket*/
+	fd = socket(AF_INET, SOCK_DGRAM, 0);
+	if(fd < 0){
+		printf("%s_%d socket created fail,errno=%d\r\n", __FILE__, __LINE__,errno);
+		return;
+	}
+	printf("fd=%d \r\n",fd);
+	bzero((void *)&addr,sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(5000);
+	addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	if(bind(fd,(struct sockaddr*)&addr,sizeof(addr))<0){
+		printf("%s_%d, bind fail， errno=%d\r\n",__FILE__, __LINE__,errno);
+		close(fd);
+		return;
+	}
+	
+	while(1){
+		bzero((void *)buf,sizeof(buf));
+		iRet = recvfrom(fd,buf,sizeof(buf),0,(struct sockaddr*)&rAddr,&rAddrLen);
+		if(iRet > 0){
+			printf("%s(() rcv [ %02X ]\r\n",__func__,buf[0]);
+			signalQueryEvent(buf[0]);
+		}
+			
+	}
+	
+		
+}
+
+
+
+/*get response oder by query order*/
+unsigned char getRespOrder(unsigned char queryOrder){
+	return queryOrder;	
+}
+
+
+
+int main(){
+	pthread_t handle;
+	int i = 0;
+	char c;
+	
+	initQueryEvent(1);
+	
+	if (0 != pthread_create(&handle, NULL, rcvProcFun, NULL)) {
+    	printf("error when create pthread,%d\n", errno);
+    	return -1;
+	}
+	
+	while(1){
+		fscanf(stdin,"%c", &c);
+		if(c == 'q'){
+			printf("Exit \r\n");
+			return 0;
+		}
+		waitQueryEventTimed(getRespOrder(c),1000*10);
+		printf("%s()_%d,Event Return\r\n",__func__,i++);
+	}
+	
+	
+}

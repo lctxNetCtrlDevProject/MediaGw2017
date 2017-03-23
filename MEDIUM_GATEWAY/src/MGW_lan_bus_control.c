@@ -86,7 +86,7 @@ int32 Board_Mng_SendTo_834(uint8 *buf, int32 len)
 {
 	int i = 0;
 
-	if(flag_dump == DUMP_OPEN)
+	if(1)//flag_dump == DUMP_OPEN)
 	{
 		printf("%s\r\n", __func__);
 		for(i = 0; i < len; i++)
@@ -129,7 +129,7 @@ int32 Board_Mng_SendTo_716(uint8 *buf, int32 len)
 {
 	int i = 0;
 
-	if(flag_dump == DUMP_OPEN)
+	if(1)//flag_dump == DUMP_OPEN)
 	{
 		printf("%s\r\n", __func__);
 		for(i = 0; i < len; i++)
@@ -175,7 +175,7 @@ int32 Board_Mng_SendTo_50(uint8 *buf, int32 len)
 
 int32 Board_Mng_SendTo_716_Ray(uint8 *buf, int32 len)
 {
-	if(flag_dump == DUMP_OPEN)
+	if(1)//flag_dump == DUMP_OPEN)
 	{
 		int i = 0;
 		printf("%s\r\n", __func__);
@@ -787,6 +787,8 @@ void RpcSeatMng_RxThread(void)
 	int Rec_Len;
 	unsigned int len;
 	int i = 0;	
+	ST_SEAT_MNG_MSG *pMsg = (ST_SEAT_MNG_MSG *)abuf;
+
 
 	printf("%s start !\r\n", __func__);
 	
@@ -816,7 +818,9 @@ void RpcSeatMng_RxThread(void)
 				printf("\r\n");	
 			}
 
-			Board_Mng_Process(abuf, Rec_Len);		
+			Board_Mng_Process(abuf, Rec_Len);
+
+			signalQueryEvent(pMsg->body[0]);
 		}
 	}
 }
@@ -968,7 +972,7 @@ void Board_716_Mng_RxThread(void)
 		   (struct sockaddr *)&remote_addr, &len)) != DRV_ERR)
 		{
 		
-			if(flag_dump == DUMP_OPEN)
+			if(1)//flag_dump == DUMP_OPEN)
 			{
 				printf("%s\r\n", __func__);
 				for(i = 0; i < Rec_Len; i++)
@@ -1036,6 +1040,8 @@ void Board_716_Mng_RxThread(void)
 					memcpy(msg.body, rcv->body, rcv->header.data_len);
 					Board_Mng_SendTo_50((uint8 *)&msg, sizeof(ST_HF_MGW_DCU_PRO_HEADER) + msg.header.data_len);	
 					#endif
+
+					signalQueryEvent(rcv->body[0]);
 
 					break;	
 				default:
@@ -1173,7 +1179,7 @@ void Board_716_Ray_Mng_RxThread(void)
 		if((Rec_Len = recvfrom(gRpcBoardMngSocket_716_Ray, abuf, MAX_SOCKET_LEN, 0,
 		   (struct sockaddr *)&remote_addr, &len)) != DRV_ERR)
 		{
-#if 0	
+#if 1	
 			int i = 0;
 			printf("%s\r\n", __func__);
 			for(i = 0; i < Rec_Len; i++)
@@ -1208,7 +1214,9 @@ void Board_716_Ray_Mng_RxThread(void)
 						memcpy((uint8 *)&(msg.body[3]), rcv->body, rcv->header.data_len);
 					}
 
-					RpcSeatMng_SendTo_Seat((uint8 *)&msg, sizeof(ST_SEAT_MNG_HEADER) + msg.header.data_len);					
+					RpcSeatMng_SendTo_Seat((uint8 *)&msg, sizeof(ST_SEAT_MNG_HEADER) + msg.header.data_len);
+					
+					signalQueryEvent(rcv->header.msg_flg);
 					
 					break;				
 				default:
