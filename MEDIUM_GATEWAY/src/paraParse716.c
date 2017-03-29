@@ -385,6 +385,7 @@ int Board_Mng_DelAll_User_Num()
 	Board_Mng_SendTo_716((uint8 *)&Regmsg, len);
 #else
 	MNG_ZW_USR_CFG_PKT ZxCmd;
+	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
 
 	ZxCmd.header.InfoType = ZW_INFO_TYPE_USR_CFG;
 	ZxCmd.header.CmdLen = 4;
@@ -433,6 +434,7 @@ int Board_Mng_Set_User_Num(uint8 *pUsrNum, uint16 SecurityNum, uint8 channel)
 	Board_Mng_SendTo_716((uint8 *)&Regmsg, len);
 #else
 	MNG_ZW_USR_CFG_PKT ZxCmd;
+	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
 
 	ZxCmd.header.InfoType = ZW_INFO_TYPE_USR_CFG;
 	ZxCmd.header.CmdLen = 33;
@@ -873,7 +875,8 @@ int Board_Mng_IPIntf_Addr_DelAll()
 
 	for (i = 1; i <= 0xf; i++)
 		Board_Mng_IPIntf_Addr_Del(i);
-	
+
+	//Board_Mng_IPIntf_Addr_Del(0x30); //maybe need add
 	return 0;
 }
 
@@ -1380,7 +1383,7 @@ int DisplayBoardShowVersion()
 	msg.body[14] = 48; // 0
 	msg.body[15] = 51; // 3
 	msg.body[16] = 50; // 2
-	msg.body[17] = 52;	// 4
+	msg.body[17] = 56;	// 8
 	msg.body[18] = 41; // )
 	
 	Board_Mng_SendTo_Display(&msg, msg.total_len);
