@@ -17,7 +17,7 @@ make; make install
 #Fedora: "sudo yum install libperl-dev"
 
 #setp_3, manually install config file to dir of your host, which stored at "./hostCfgFile" dir
-
+#[Note] snmpd default search dir can be checked by "snmpd --help" with '-C' option description
 
 
 
