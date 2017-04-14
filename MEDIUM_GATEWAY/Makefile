@@ -121,6 +121,7 @@ MAINCSRCS=	MGW_main.c \
 	MGWparaInject.c \
 	paraParse716.c \
 	paraParse834.c \
+	paraParse50.c \
 	phone.c  \
 	adapter.c
 

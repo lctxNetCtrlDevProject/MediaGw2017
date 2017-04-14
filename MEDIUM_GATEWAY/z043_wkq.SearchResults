@@ -1,4 +1,3 @@
----- Board_Mng_SendTo_SnmpAgent Matches (3 in 2 files) ----
-MGW_lan_bus_control.c (src):int32 Board_Mng_SendTo_SnmpAgent(uint8 *buf, int32 len)
-MGW_lan_bus_control.c (src):					Board_Mng_SendTo_SnmpAgent((uint8 *)&msg, sizeof(ST_SEAT_MNG_HEADER) + msg.header.data_len);
-MGW_protocol_parse.c (src):		Board_Mng_SendTo_SnmpAgent((uint8 *)&send, sizeof(ST_SEAT_MNG_HEADER) + send.header.data_len);			
+---- DisplayBoardShowVersion Matches (2 in 2 files) ----
+MGW_main.c (src):		DisplayBoardShowVersion();
+paraParse716.c (src):int DisplayBoardShowVersion()

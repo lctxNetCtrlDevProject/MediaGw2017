@@ -1279,6 +1279,7 @@ void Board_50_Mng_RxThread(void)
 	int i = 0;	
 
 	ST_HF_MGW_DCU_PRO msg;
+	MNG_50_MSG *rcv = (MNG_50_MSG *)abuf;
 
 	printf("%s start !\r\n", __func__);
 	
@@ -1290,7 +1291,7 @@ void Board_50_Mng_RxThread(void)
 		{
 			memset(&msg, 0x00, sizeof(msg));
 		
-			if(flag_dump == DUMP_OPEN)
+			if(1)//flag_dump == DUMP_OPEN)
 			{
 				printf("%s\r\n", __func__);
 				for(i = 0; i < Rec_Len; i++)
@@ -1324,6 +1325,8 @@ void Board_50_Mng_RxThread(void)
 			{
 				printf("Invalid work mode(%d).\r\n", Param_update.workmode);
 			}
+
+			signalQueryEvent(*(uint16 *)(&rcv->Data[1]));
 		}
 	}
 }

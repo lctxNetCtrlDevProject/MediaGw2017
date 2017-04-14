@@ -23,7 +23,7 @@ typedef struct {
 
 typedef struct {
 	COND_EVENT	event;			/*cond_event to syn query and response*/
-	unsigned char 	order;			/*related compared response order*/
+	unsigned int 	order;			/*related compared response order*/
 }QUERY_EVENT;
 
 
@@ -91,7 +91,7 @@ void freeQueryEvent(QUERY_EVENT *queryEvent){
 	pthread_mutex_unlock(&g_mutex);
 }
 
-void setQueryEvent(QUERY_EVENT *queryEvent, unsigned char order, int expTimMs){
+void setQueryEvent(QUERY_EVENT *queryEvent, unsigned int order, int expTimMs){
 	struct timespec now;
 	pthread_mutex_lock(&g_mutex);
 	clock_gettime(CLOCK_MONOTONIC, &now);
@@ -101,15 +101,15 @@ void setQueryEvent(QUERY_EVENT *queryEvent, unsigned char order, int expTimMs){
 	//printf("exp Time=(%d_%d) \r\n",queryEvent->event.expTimer.tv_sec ,queryEvent->event.expTimer.tv_nsec );
 	queryEvent->order = order;
 	pthread_mutex_unlock(&g_mutex);
-	printf("%s() QueryEvent=%p ,order =%02X\r\n",__func__,queryEvent,queryEvent->order);
+	printf("%s() QueryEvent=%p ,order =%04x\r\n",__func__,queryEvent,queryEvent->order);
 }
 
 
-int waitQueryEventTimed(unsigned char order, int expTimMs){
+int waitQueryEventTimed(unsigned int order, int expTimMs){
 	QUERY_EVENT *queryEvent;
 	int iRet = -1;
 
-	printf("%s(), order=%02X, exp=%d ms\r\n", __func__, order,expTimMs);
+	printf("%s(), order=%04x, exp=%d ms\r\n", __func__, order,expTimMs);
 	
 	queryEvent = getFreeQueryEvent();
 	if(!queryEvent){
@@ -152,7 +152,7 @@ int signalQueryEvent( unsigned char respOrder){
 		//printf("Test QueryEvent=%p \r\n",queryEvent);
 		if(queryEvent &&queryEvent->order != INVALID_ORDER && respOrder == queryEvent->order){
 			iRet = 0;
-			printf("%s(), order=%02X\r\n", __func__, respOrder);
+			printf("%s(), order=%04x\r\n", __func__, respOrder);
 			pthread_mutex_lock(&(queryEvent->event.mutex));
 	   	 	pthread_cond_signal(&(queryEvent->event.cond));
 			pthread_mutex_unlock(&(queryEvent->event.mutex));

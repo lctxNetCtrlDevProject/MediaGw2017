@@ -1381,9 +1381,9 @@ int DisplayBoardShowVersion()
 	msg.body[12] = 49; // 1
 	msg.body[13] = 55;	// 7
 	msg.body[14] = 48; // 0
-	msg.body[15] = 51; // 3
-	msg.body[16] = 50; // 2
-	msg.body[17] = 56;	// 8
+	msg.body[15] = 52; // 4
+	msg.body[16] = 49; // 1
+	msg.body[17] = 52;	// 4
 	msg.body[18] = 41; // )
 	
 	Board_Mng_SendTo_Display(&msg, msg.total_len);
