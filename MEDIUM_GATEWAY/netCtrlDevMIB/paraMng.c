@@ -6,12 +6,18 @@
 #include <errno.h>
 #include "osa.h"
 #include "mgwParaAccess.h"
+#include "zwParaAccess.h"
+
 #include "interior_protocol.h"
+#include "MGW_lan_bus_control.h"
+#include "716MngProto.h"
 #include "public.h"
 
 #define	SNMP_AGENT_834_PORT	50002
 #define 	BOARD_834_PORT		30006
 
+#define 	BOARD_716_PORT		6060
+#define 	BOARD_716_IP		"192.168.254.1"
 
 /***********Macro & Definations*********/
 enum __834_PARA_ID__
@@ -53,7 +59,7 @@ enum __834_PARA_ID__
 SOCKET_TYPE g_paraPduRcvFd ;			/*Rcving fd from 834 board*/
 
 
-
+//----------------------834 Board------------------------------------------------
 static int sendBufTo834Board(unsigned char *buf, int len){
 	int iRet = -1;
 	if(!buf || len <=0){
@@ -122,11 +128,143 @@ void sndQueryGPortMode(){
 	sndPktTo834Board(buf,sizeof(buf));
 }
 
+//--------------------------Zw 716 Board------------------------------------
+static int sendBufTo716Board(unsigned char *buf, int len){
+	int iRet = -1;
+	if(!buf || len <=0){
+		OSA_ERROR("Invalid Para");
+		return iRet;
+	}
+	if(g_paraPduRcvFd <=0)
+	{
+		OSA_ERROR("Listen fd not created");
+		return iRet;
+	}
+	iRet = osa_udpSendData(g_paraPduRcvFd,buf,len, BOARD_716_IP, BOARD_716_PORT);
+	if(iRet != len){
+		OSA_ERROR("Send Fail");
+		return  -1;
+	}
+	return iRet;
+}
 
+int sndPktTo716Board(uint8 *pMsg, int size){
+	ST_HF_MGW_DCU_PRO Regmsg;
+	int len = 0;
+	if(!pMsg || size <0)
+		return;
+	memset(&Regmsg, 0x0, sizeof(Regmsg));
+	memcpy(Regmsg.body, pMsg, size);
+
+	/* 因716厂的通信控制板软件沿用了Z018海防项目与50所之间的板间参数交互协议，
+	故业务接口板发送给716通信控制板的消息源地址需填充50所炮防通信控制板的地址0x10 */
+	Regmsg.header.baowen_type = 0xA0; //0xA0;协议上写0x0A
+	Regmsg.header.dst_addr = BAOWEN_ADDR_TYPE_716_BOARD;
+	Regmsg.header.src_addr = BAOWEN_ADDR_TYPE_50_BOARD;
+	Regmsg.header.info_type = BAOWEN_MSG_TYPE_CMD;
+	Regmsg.header.data_len = size;
+
+	len = sizeof(ST_HF_MGW_DCU_PRO_HEADER) + Regmsg.header.data_len;	
+	dispBuf((unsigned char *)&Regmsg, len, __func__);
+	return sendBufTo716Board((unsigned char *)&Regmsg,len);
+	//Board_Mng_SendTo_716((uint8 *)&Regmsg, len);
+}
+
+void sndQueryZwMode(){
+	MNG_ZW_DEV_ID_GET_MSG ZxCmd;
+	memset(&ZxCmd, 0x00, sizeof(ZxCmd));
+	ZxCmd.InfoType = MSG_716_MODE_GET_MSG;
+	ZxCmd.CmdLen = htonl(2);
+
+	OSA_DBG_MSG("%s_%d",__func__,__LINE__);
+	sndPktTo716Board((uint8 *)&ZxCmd,sizeof(ZxCmd));
+}
+
+void sndQueryArmyId(){
+	MNG_ZW_ARMY_ID_GET_MSG ZxCmd;
+	memset(&ZxCmd, 0x00, sizeof(ZxCmd));
+	ZxCmd.InfoType = MSG_716_ARMY_ID_GET_MSG;
+	ZxCmd.CmdLen = htonl(2);
+
+	OSA_DBG_MSG("%s_%d",__func__,__LINE__);
+	sndPktTo716Board((uint8 *)&ZxCmd,sizeof(ZxCmd));
+}
+
+void sndQueryZwUsrNumTabAll(){
+	MNG_ZW_USR_CFG_PKT ZxCmd;
+	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
+
+	ZxCmd.header.InfoType = MSG_716_USR_NUM_GET_MSG;
+	ZxCmd.header.CmdLen = htons(4);
+	ZxCmd.CmdId = ZW_USR_ALL_NUM;	
+	ZxCmd.OpMode = ZW_USR_QUERY;
+	ZxCmd.MsgLen = 1;
+	ZxCmd.Ack = 1;
+
+	OSA_DBG_MSG(" ");
+	dispBuf((unsigned char *)&ZxCmd, 7, __func__);
+	
+	sndPktTo716Board((uint8 *)&ZxCmd,7);
+}
+
+void sndQueryZwUsrNumTabIndex(uint16 index){
+	MNG_ZW_USR_CFG_PKT ZxCmd;
+	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
+
+	ZxCmd.header.InfoType = MSG_716_USR_NUM_GET_MSG;
+	ZxCmd.header.CmdLen = 6;
+	ZxCmd.CmdId = ZW_USR_ALL_NUM;	
+	ZxCmd.OpMode = ZW_USR_QUERY;
+	ZxCmd.MsgLen = 3;
+	ZxCmd.Ack = 1;
+	ZxCmd.Index = htons(index);
+
+	OSA_DBG_MSG("%s_%d",__func__,__LINE__);
+	sndPktTo716Board((uint8 *)&ZxCmd,9);
+}
+
+
+//----------------------------Main Code----------------------------------------------
 
 static void handle716Para(unsigned char *buf, int len){
+	unsigned char cmd = buf[0];
+	OSA_DBG_MSGX("cmd =%x",cmd);
+
 	dispBuf(buf,len,__func__);
+	short msgLen =	ntohs(*(short *)(&buf[1]));
+	
+	switch(cmd){
+		case MSG_716_MODE_GET_MSG_ACK:{
+			setZwMode(buf[3]);
+		}break;
+		case MSG_716_ARMY_ID_GET_MSG_ACK:{
+			setArmyId(ntohs(*(uint16 *)&buf[3]));
+		}break;
+		case MSG_716_USR_NUM_GET_MSG_ACK:{
+			static int zwUsrNum_index = 0;
+			static zwUsrNum_type zwUsrNum[100];
+
+			OSA_DBG_MSGX("zwUsrNum_index =%d", zwUsrNum_index);
+			if (buf[6] == 1) {//usrNum exit		
+				OSA_DBG_MSGX(" ");
+				zwUsrNum[zwUsrNum_index].chanId = buf[16];
+				memcpy(zwUsrNum[zwUsrNum_index].usrNum, &buf[9], USR_NUM_LEN); 
+				memcpy(zwUsrNum[zwUsrNum_index].secNum,&buf[13], SEC_NUM_LEN);
+				dispBuf(&zwUsrNum[zwUsrNum_index], sizeof(zwUsrNum[zwUsrNum_index]), __func__);
+				zwUsrNum_index++; 
+				sndQueryZwUsrNumTabIndex((*(uint16 *)&buf[7]) + 1); //index
+			} else {//usrNum not exit, or the last usrNum
+				OSA_DBG_MSGX(" ");
+				setUsrNumTab(zwUsrNum, zwUsrNum_index);
+				zwUsrNum_index = 0;
+				memset(zwUsrNum, 0, sizeof(zwUsrNum));
+			}
+		}break;
+		default:{
+		}
+	}		
 }
+
 static void handle834Para(unsigned char *buf, int len){
 
 	unsigned char cmd = buf[0];

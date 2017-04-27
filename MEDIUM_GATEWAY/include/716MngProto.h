@@ -33,6 +33,10 @@ typedef enum{
 	ZW_INFO_TYPE_FIBR_STA_CFG  = 0xa1,
 	ZW_INFO_TYPE_FIBR_INTF_CFG = 0xa3,
 	ZW_INFO_TYPE_FIBR_YW_CFG = 0xab,
+	
+	MSG_716_MODE_GET_MSG = 0x8d,	
+	MSG_716_ARMY_ID_GET_MSG = 0x8e,
+	MSG_716_USR_NUM_GET_MSG = 0x40,
 }ZwMngInfoType;
 
 typedef enum{
@@ -66,6 +70,11 @@ typedef enum{
 	ZW_INFO_TYPE_FIBR_STA_CFG_ACK  = 0xa1,
 	ZW_INFO_TYPE_FIBR_INTF_CFG_ACK = 0xa3,
 	ZW_INFO_TYPE_FIBR_YW_CFG_ACK = 0xab,
+
+	MSG_716_MODE_GET_MSG_ACK = 0xcd,
+	MSG_716_ARMY_ID_GET_MSG_ACK = 0xce, 
+	MSG_716_USR_NUM_GET_MSG_ACK = 0x40,
+
 }ZwMngReplyId;
 
 
@@ -368,7 +377,19 @@ typedef struct
 	uint8 eof;
 }RAY_FIBR_YW_CFG_PKT;
 
+typedef struct __Mng_Zw_Interface_Dev_Id_Get_Msg__
+{
+	uint8 InfoType;
+	uint16 CmdLen;
+	uint16 CmdData;
+}__attribute__((packed))MNG_ZW_DEV_ID_GET_MSG;
 
+typedef struct __Mng_Zw_Interface_Army_Id_Get_Msg__
+{
+	uint8 InfoType;
+	uint16 CmdLen;
+	uint16 CmdData;
+}__attribute__((packed))MNG_ZW_ARMY_ID_GET_MSG;
 
 
 

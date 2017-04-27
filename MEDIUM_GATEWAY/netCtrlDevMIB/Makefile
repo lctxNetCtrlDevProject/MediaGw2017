@@ -3,8 +3,8 @@
 
 CrossCompile =1 
 ifdef CrossCompile
-	CC=powerpc-linux-gcc
-	export snmp_target=/work/lctx_work/netCtrlDev2017/NET-SNMP/PKG/crossNetSnmp-5.7.3/target
+	CC=powerpc-e300c3-linux-gcc
+	export snmp_target=/work/T144/net-snmp/PKT/target
 else
 CC=gcc
 endif
@@ -23,7 +23,8 @@ PUBLIC_SRCS = public.c paraMng.c
 PUBLIC_OBJS = $(PUBLIC_SRCS:.c=.o)
 
 #==================mgwPara===================
-MGW_PARA_SRCS = mgwParaAccess.c zhenRFenjTable.c conferenceTable.c mediaGW.c
+MGW_PARA_SRCS = mgwParaAccess.c zhenRFenjTable.c conferenceTable.c mediaGW.c \
+		zwParaAccess.c zhanSNet.c zwUsrTable.c
 MGW_PARA_OBJS = $(MGW_PARA_SRCS:.c=.o)
 
 
@@ -45,12 +46,12 @@ NET-SNMP-LIBS="${NET-SMP-INSTALL-DIR}/lib/
 
 BUILDLIBS=`net-snmp-config --libs`
 ifdef CrossCompile
-	BUILDAGENTLIBS=`/work/lctx_work/netCtrlDev2017/NET-SNMP/PKG/crossNetSnmp-5.7.3/target/bin/net-snmp-config --agent-libs`
+	BUILDAGENTLIBS=`/work/T144/net-snmp/PKT/target/bin/net-snmp-config --agent-libs`
 else
 	BUILDAGENTLIBS=`net-snmp-config --agent-libs`
 endif
 # shared library flags (assumes gcc)
-CFLAGS= -fPIC -I$(NET-SNMP-HEADFILES) -I$(OSA_INC) -I$(EXTERN_INC)  
+CFLAGS= -fPIC -I$(NET-SNMP-HEADFILES) -I$(OSA_INC) -I$(EXTERN_INC) -I "../include/"
 #DLFLAGS=-g -fPIC -shared 
 
 all:$(TARGETS)
