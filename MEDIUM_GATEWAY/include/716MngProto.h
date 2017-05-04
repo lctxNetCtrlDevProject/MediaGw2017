@@ -189,7 +189,7 @@ typedef struct __Mng_Zw_Interface_Huanhui_Msg__
 typedef struct{
 	uint8 InfoType;
 	uint16 CmdLen;
-}ZwMngHeader;
+}__attribute__((packed))ZwMngHeader;
 
 typedef struct __Mng_Zw_Set_UserNum__
 {
@@ -211,7 +211,7 @@ typedef struct __Mng_Zw_Set_UserNum__
 	uint8 NetMode;
 	uint16 GroupOutCode;
 	uint16 GroupInCode;
-}MNG_ZW_USR_CFG_PKT;
+}__attribute__((packed))MNG_ZW_USR_CFG_PKT;
 
 typedef struct
 {

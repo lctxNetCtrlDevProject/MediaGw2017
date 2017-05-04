@@ -80,7 +80,7 @@ struct zwUsrTable_entry {
     struct zwUsrTable_entry *next;
 };
 
-struct zwUsrTable_entry  *zwUsrTable_head;
+struct zwUsrTable_entry  *zwUsrTable_head = NULL;
 
 /* create a new row in the (unsorted) table */
 struct zwUsrTable_entry *
@@ -94,6 +94,7 @@ zwUsrTable_createEntry(
     if (!entry)
         return NULL;
 
+    memset(entry,0x00,sizeof(struct zwUsrTable_entry));
     memcpy(entry->usrNumber, usrNumber, usrNumber_len);
     entry->usrNumber_len = usrNumber_len;
     entry->next = zwUsrTable_head;
@@ -147,8 +148,9 @@ static void loadZwUsrNumTab(){
 	zwUsrNum_type *tab = NULL;
 	struct zwUsrTable_entry *entry = NULL;
 	char usrNumber[USR_NUM_LEN];
-	
+
 	tab = getUsrNumTab(&itemCnt);
+	OSA_DBG_MSGX(" itemCnt=%d", itemCnt);
 	if(!tab || itemCnt <=0){
 		OSA_ERROR("Can't load ZW Usr Num Table");
 		return;
@@ -169,6 +171,17 @@ static void loadZwUsrNumTab(){
 	}
 }
 
+int needClear = 1;
+static void clearTab() {
+	struct zwUsrTable_entry *entry = NULL;
+
+	while (zwUsrTable_head) {
+		entry = zwUsrTable_head->next;
+		free(zwUsrTable_head);
+		zwUsrTable_head = entry;
+	}
+}
+
 /* Example iterator hook routines - using 'get_next' to do most of the work */
 netsnmp_variable_list *
 zwUsrTable_get_first_data_point(void **my_loop_context,
@@ -176,6 +189,12 @@ zwUsrTable_get_first_data_point(void **my_loop_context,
                           netsnmp_variable_list *put_index_data,
                           netsnmp_iterator_info *mydata)
 {
+	OSA_DBG_MSGX(" ");
+
+	if (needClear) //clear table at first
+		clearTab();
+	needClear = 0;
+	
 	loadZwUsrNumTab();
 
     *my_loop_context = zwUsrTable_head;
@@ -229,7 +248,12 @@ zwUsrTable_handler(
             table_entry = (struct zwUsrTable_entry *)
                               netsnmp_extract_iterator_context(request);
             table_info  =     netsnmp_extract_table_info(      request);
-    
+
+			if ( !table_entry ) {
+				needClear = 1; // this loop is end, need to clear table next time
+				OSA_DBG_MSGX(" ");
+			}
+
             switch (table_info->colnum) {
             case COLUMN_CHANID:
                 if ( !table_entry ) {

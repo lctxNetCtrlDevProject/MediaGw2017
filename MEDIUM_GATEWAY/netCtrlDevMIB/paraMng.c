@@ -244,17 +244,20 @@ static void handle716Para(unsigned char *buf, int len){
 			static int zwUsrNum_index = 0;
 			static zwUsrNum_type zwUsrNum[100];
 
-			OSA_DBG_MSGX("zwUsrNum_index =%d", zwUsrNum_index);
+			if (buf[4] != ZW_USR_QUERY_ACK) //only handle query ack
+				break;
+		
 			if (buf[6] == 1) {//usrNum exit		
-				OSA_DBG_MSGX(" ");
+				OSA_DBG_MSGX("zwUsrNum_index =%d", zwUsrNum_index);
+
 				zwUsrNum[zwUsrNum_index].chanId = buf[16];
 				memcpy(zwUsrNum[zwUsrNum_index].usrNum, &buf[9], USR_NUM_LEN); 
 				memcpy(zwUsrNum[zwUsrNum_index].secNum,&buf[13], SEC_NUM_LEN);
-				dispBuf(&zwUsrNum[zwUsrNum_index], sizeof(zwUsrNum[zwUsrNum_index]), __func__);
+				//dispBuf(&zwUsrNum[zwUsrNum_index], sizeof(zwUsrNum[zwUsrNum_index]), __func__);
 				zwUsrNum_index++; 
 				sndQueryZwUsrNumTabIndex((*(uint16 *)&buf[7]) + 1); //index
 			} else {//usrNum not exit, or the last usrNum
-				OSA_DBG_MSGX(" ");
+				OSA_DBG_MSGX(" usrNum not exist");
 				setUsrNumTab(zwUsrNum, zwUsrNum_index);
 				zwUsrNum_index = 0;
 				memset(zwUsrNum, 0, sizeof(zwUsrNum));

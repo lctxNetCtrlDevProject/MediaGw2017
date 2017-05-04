@@ -13,7 +13,7 @@
 #include "osa.h"
 
 /**************Macro**************************/
-#define FETCH_TIMEOUT		10		/* fetching time out 500s*/
+#define FETCH_TIMEOUT		20		/* fetching time out 2000s*/
 
 /************Global Variablies*******************/
 
@@ -106,23 +106,38 @@ void initUsrNumTab(){
 }
 
 void setUsrNumTab(zwUsrNum_type tab[], int itemCnt){
+
 	int i;
+	OSA_DBG_MSGX(" itemCnt=%d", itemCnt);
 	
-	OSA_DBG_MSGX(" ");
+#if 1
+	if(!tab || itemCnt < 0 )
+		return;
 	freeTimer(g_zwUsrNumTimerID);
-	
+#else
+	freeTimer(g_zwUsrNumTimerID);
+
 	if(!tab || itemCnt <=0 ) {
 		g_zwUsrNumTabItemCnt = 0;
 		OSA_mutexUnlock(&g_zwUsrNumSynMutex);
 		return;
 	}
-	
+#endif
+
 	if (itemCnt > USR_NUM_ITEM_MAX)
 		itemCnt = USR_NUM_ITEM_MAX;
 
 	g_zwUsrNumTabItemCnt = itemCnt; 
-	memcpy(g_zwUsrNumTab,tab,itemCnt*sizeof(zwUsrNum_type));
 
+#if 1
+	for (i = 0; i < itemCnt; i++) {
+		g_zwUsrNumTab[i].chanId = tab[i].chanId;
+		strncpy(g_zwUsrNumTab[i].usrNum, tab[i].usrNum, USR_NUM_LEN);
+		strncpy(g_zwUsrNumTab[i].secNum, tab[i].secNum, SEC_NUM_LEN);		
+	}
+#else
+	memcpy(g_zwUsrNumTab,tab,itemCnt*sizeof(zwUsrNum_type));
+#endif
 	OSA_mutexUnlock(&g_zwUsrNumSynMutex);
 }
 
@@ -134,6 +149,7 @@ static void fetchUsrNumTabTimeout(){
 }
 
 zwUsrNum_type *getUsrNumTab(int *itemCnt){
+
 	sndQueryZwUsrNumTabAll();
 	g_zwUsrNumTimerID = osa_add_timer(FETCH_TIMEOUT,fetchUsrNumTabTimeout,NULL,TIMER_ONCE);
 	OSA_mutexLock(&g_zwUsrNumSynMutex);	
