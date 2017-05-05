@@ -36,6 +36,10 @@ typedef enum{
 	
 	MSG_716_MODE_GET_MSG = 0x8d,	
 	MSG_716_ARMY_ID_GET_MSG = 0x8e,
+	MSG_716_PHONE_LEN_GET_MSG = 0x8f,
+	MSG_716_AUDIO_CODEC_GET_MSG = 0x90,
+	MSG_716_AS_NUM_GET_MSG = 0x8a,
+
 	MSG_716_USR_NUM_GET_MSG = 0x40,
 }ZwMngInfoType;
 
@@ -73,8 +77,11 @@ typedef enum{
 
 	MSG_716_MODE_GET_MSG_ACK = 0xcd,
 	MSG_716_ARMY_ID_GET_MSG_ACK = 0xce, 
+	MSG_716_PHONE_LEN_GET_MSG_ACK = 0xcf,
+	MSG_716_AUDIO_CODEC_GET_MSG_ACK = 0xd0,
+	MSG_716_AS_NUM_GET_MSG_ACK = 0xca,
+	
 	MSG_716_USR_NUM_GET_MSG_ACK = 0x40,
-
 }ZwMngReplyId;
 
 
@@ -391,6 +398,26 @@ typedef struct __Mng_Zw_Interface_Army_Id_Get_Msg__
 	uint16 CmdData;
 }__attribute__((packed))MNG_ZW_ARMY_ID_GET_MSG;
 
+typedef struct __Mng_Zw_Interface_Phone_Len_Get_Msg__
+{
+	uint8 InfoType;
+	uint16 CmdLen;
+	uint16 CmdData;
+}__attribute__((packed))MNG_ZW_PHONE_LEN_GET_MSG;
+
+typedef struct __Mng_Zw_Interface_Audio_Codec_Get_Msg__
+{
+	uint8 InfoType;
+	uint16 CmdLen;
+	uint16 CmdData;
+}__attribute__((packed))MNG_ZW_AUDIO_CODEC_GET_MSG;
+
+typedef struct __Mng_Zw_Interface_As_Num_Get_Msg__
+{
+	uint8 InfoType;
+	uint16 CmdLen;
+	uint16 CmdData;
+}__attribute__((packed))MNG_ZW_AS_NUM_GET_MSG;
 
 
 #pragma pack(0)

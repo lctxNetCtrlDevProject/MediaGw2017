@@ -8,6 +8,7 @@
 #include <net-snmp/agent/net-snmp-agent-includes.h>
 #include "zhanSNet.h"
 #include "zwParaAccess.h"
+#include "osa_debug.h"
 
 /** Initializes the zhanSNet module */
 void
@@ -23,12 +24,11 @@ init_zhanSNet(void)
   	DEBUGMSGTL(("zhanSNet", "Initializing\n"));
 
     initZwMode();
-	initArmyId();
-  	//initDevSeq();
-	//initArmyNum();
-	//initPhoneLen();
-	//initAudioCodec();
-	//initAsNum();
+	initArmyId();	//initArmyNum();
+  	initDevSeq();
+	initPhoneLen();
+	initAudioCodec();
+	initAsNum();
 
     netsnmp_register_scalar(
         netsnmp_create_handler_registration("mode", handle_mode,
@@ -79,6 +79,7 @@ handle_mode(netsnmp_mib_handler *handler,
 
         case MODE_GET:
 			ret = getZwMode();
+			OSA_DBG_MSGX("mode =%x",ret);
             snmp_set_var_typed_value(requests->requestvb, ASN_INTEGER,
                                      /* XXX: a pointer to the scalar's data */&ret,
                                      /* XXX: the length of the data in bytes */sizeof(ret));
@@ -158,9 +159,11 @@ handle_devSeq(netsnmp_mib_handler *handler,
     switch(reqinfo->mode) {
 
         case MODE_GET:
+			ret = getDevSeq();
+			OSA_DBG_MSGX("DevSeq =%x",ret);
             snmp_set_var_typed_value(requests->requestvb, ASN_OCTET_STR,
-                                     /* XXX: a pointer to the scalar's data */0,
-                                     /* XXX: the length of the data in bytes */0);
+                                     /* XXX: a pointer to the scalar's data */&ret,
+                                     /* XXX: the length of the data in bytes */sizeof(ret));
             break;
 
         /*
@@ -237,9 +240,8 @@ handle_armyNum(netsnmp_mib_handler *handler,
     switch(reqinfo->mode) {
 
         case MODE_GET:
-			ret = getArmyId();
-			
-			snmp_log(LOG_ERR, "%s, %x", __func__, ret);
+			ret = getArmyId();		
+			OSA_DBG_MSGX("ArmyId =%x",ret);
             snmp_set_var_typed_value(requests->requestvb, ASN_OCTET_STR,
                                      /* XXX: a pointer to the scalar's data */&ret,
                                      /* XXX: the length of the data in bytes */sizeof(ret));
@@ -319,9 +321,11 @@ handle_phoneLen(netsnmp_mib_handler *handler,
     switch(reqinfo->mode) {
 
         case MODE_GET:
+			ret = getPhoneLen();			
+			OSA_DBG_MSGX("PhoneLen =%x",ret);
             snmp_set_var_typed_value(requests->requestvb, ASN_INTEGER,
-                                     /* XXX: a pointer to the scalar's data */0,
-                                     /* XXX: the length of the data in bytes */0);
+                                     /* XXX: a pointer to the scalar's data */&ret,
+                                     /* XXX: the length of the data in bytes */sizeof(ret));
             break;
 
         /*
@@ -398,9 +402,11 @@ handle_audioCodec(netsnmp_mib_handler *handler,
     switch(reqinfo->mode) {
 
         case MODE_GET:
+			ret = getAudioCodec();
+			OSA_DBG_MSGX("AudioCodec =%x",ret);			
             snmp_set_var_typed_value(requests->requestvb, ASN_INTEGER,
-                                     /* XXX: a pointer to the scalar's data */0,
-                                     /* XXX: the length of the data in bytes */0);
+                                     /* XXX: a pointer to the scalar's data */&ret,
+                                     /* XXX: the length of the data in bytes */sizeof(ret));
             break;
 
         /*
@@ -477,9 +483,11 @@ handle_asNum(netsnmp_mib_handler *handler,
     switch(reqinfo->mode) {
 
         case MODE_GET:
+			ret = getAsNum();
+			OSA_DBG_MSGX("AsNum =%x",ret);	
             snmp_set_var_typed_value(requests->requestvb, ASN_OCTET_STR,
-                                     /* XXX: a pointer to the scalar's data */0,
-                                     /* XXX: the length of the data in bytes */0);
+                                     /* XXX: a pointer to the scalar's data */&ret,
+                                     /* XXX: the length of the data in bytes */sizeof(ret));
             break;
 
         /*

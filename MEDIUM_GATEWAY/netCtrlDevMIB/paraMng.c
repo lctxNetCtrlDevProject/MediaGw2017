@@ -180,10 +180,50 @@ void sndQueryZwMode(){
 	sndPktTo716Board((uint8 *)&ZxCmd,sizeof(ZxCmd));
 }
 
+void sndQueryDevSeq(){
+	MNG_ZW_DEV_ID_GET_MSG ZxCmd;
+	memset(&ZxCmd, 0x00, sizeof(ZxCmd));
+	ZxCmd.InfoType = MSG_716_MODE_GET_MSG;
+	ZxCmd.CmdLen = htonl(2);
+
+	OSA_DBG_MSG("%s_%d",__func__,__LINE__);
+	sndPktTo716Board((uint8 *)&ZxCmd,sizeof(ZxCmd));
+}
+
 void sndQueryArmyId(){
 	MNG_ZW_ARMY_ID_GET_MSG ZxCmd;
 	memset(&ZxCmd, 0x00, sizeof(ZxCmd));
 	ZxCmd.InfoType = MSG_716_ARMY_ID_GET_MSG;
+	ZxCmd.CmdLen = htonl(2);
+
+	OSA_DBG_MSG("%s_%d",__func__,__LINE__);
+	sndPktTo716Board((uint8 *)&ZxCmd,sizeof(ZxCmd));
+}
+
+void sndQueryPhoneLen(){
+	MNG_ZW_PHONE_LEN_GET_MSG ZxCmd;
+	memset(&ZxCmd, 0x00, sizeof(ZxCmd));
+	ZxCmd.InfoType = MSG_716_PHONE_LEN_GET_MSG;
+	ZxCmd.CmdLen = htonl(2);
+
+	OSA_DBG_MSG("%s_%d",__func__,__LINE__);
+	sndPktTo716Board((uint8 *)&ZxCmd,sizeof(ZxCmd));
+}
+
+void sndQueryAudioCodec(){
+	MNG_ZW_AUDIO_CODEC_GET_MSG ZxCmd;
+	memset(&ZxCmd, 0x00, sizeof(ZxCmd));
+	ZxCmd.InfoType = MSG_716_AUDIO_CODEC_GET_MSG;
+	ZxCmd.CmdLen = htonl(2);
+
+	OSA_DBG_MSG("%s_%d",__func__,__LINE__);
+	sndPktTo716Board((uint8 *)&ZxCmd,sizeof(ZxCmd));
+}
+
+void sndQueryAsNum(){
+	MNG_ZW_AS_NUM_GET_MSG ZxCmd;
+	memset(&ZxCmd, 0x00, sizeof(ZxCmd));
+	ZxCmd.InfoType = MSG_716_AS_NUM_GET_MSG;
 	ZxCmd.CmdLen = htonl(2);
 
 	OSA_DBG_MSG("%s_%d",__func__,__LINE__);
@@ -236,10 +276,20 @@ static void handle716Para(unsigned char *buf, int len){
 	switch(cmd){
 		case MSG_716_MODE_GET_MSG_ACK:{
 			setZwMode(buf[3]);
+			setDevSeq(ntohs(*(uint16 *)&buf[4]));
 		}break;
 		case MSG_716_ARMY_ID_GET_MSG_ACK:{
 			setArmyId(ntohs(*(uint16 *)&buf[3]));
 		}break;
+		case MSG_716_PHONE_LEN_GET_MSG_ACK:{
+			setPhoneLen(buf[3]);
+		}break;
+		case MSG_716_AUDIO_CODEC_GET_MSG_ACK:{
+			setAudioCodec(buf[3]);
+		}break;	
+		case MSG_716_AS_NUM_GET_MSG_ACK:{
+			setAsNum(ntohl(*(uint32 *)&buf[3]));
+		}break;	
 		case MSG_716_USR_NUM_GET_MSG_ACK:{
 			static int zwUsrNum_index = 0;
 			static zwUsrNum_type zwUsrNum[100];

@@ -1,7 +1,4 @@
----- Board_716_Mng_RxThread Matches (6 in 4 files) ----
-MGW_lan_bus_control.c (src):void Board_716_Mng_RxThread(void)
-MGW_lan_bus_control.h (include):void Board_716_Mng_RxThread(void);
-MGW_main.c (src):	inc_pthread_create(&rpcBoard716MngThrdId,NULL,(void *)Board_716_Mng_RxThread, NULL);		
-MGW_protocol_parse.c (src):Board_716_Mng_RxThread
-MGW_protocol_parse.c (src):Board_716_Mng_RxThread
-MGW_protocol_parse.c (src):业务接口板收到716的响应消息为:Board_716_Mng_RxThread
+---- osa_init_timer Matches (3 in 3 files) ----
+Main.c (netctrldevmib):	osa_init_timer(20);
+Osa_timer.c (netctrldevmib\osa\src):int osa_init_timer(int count)
+Osa_timer.h (netctrldevmib\osa\inc):int osa_init_timer(int count);

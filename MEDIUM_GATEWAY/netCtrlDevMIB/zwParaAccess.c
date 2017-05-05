@@ -34,7 +34,7 @@ static void freeTimer(int timerID){
 
 //-----------zwMode-------------------
 void initZwMode(){
-	zwMode = 2;
+	zwMode = 0;
 	OSA_mutexCreate(&g_zwModeSynMutex);
 	OSA_mutexLock(&g_zwModeSynMutex);		/*decrease mutex to 0*/
 }
@@ -56,6 +56,37 @@ int getZwMode(){
 	g_zwModeTimerID = osa_add_timer(FETCH_TIMEOUT,fetchZwModeTimeout,NULL,TIMER_ONCE);
 	OSA_mutexLock(&g_zwModeSynMutex);	
 	return zwMode;
+}
+//-----------zwDevSeq---------------------
+int zwDevSeq = 0;	
+OSA_MutexHndl    g_DevSeqSynMutex;		/*mutex using to syn the query & response*/
+int			     g_DevSeqTimerID;
+
+void initDevSeq(){
+	zwDevSeq = 0;
+	OSA_mutexCreate(&g_DevSeqSynMutex);
+	OSA_mutexLock(&g_DevSeqSynMutex);		/*decrease mutex to 0*/
+	freeTimer(g_DevSeqTimerID);
+}
+
+void setDevSeq(int DevSeq){
+	zwDevSeq = DevSeq;
+	OSA_DBG_MSGX("DevSeq =%x",DevSeq);
+	OSA_mutexUnlock(&g_DevSeqSynMutex);
+	freeTimer(g_DevSeqTimerID);
+}
+
+static void fetchDevSeqTimeout(){
+	OSA_DBG_MSGX(" ");
+	zwDevSeq = -1;
+	OSA_mutexUnlock(&g_DevSeqSynMutex);
+}
+
+int getDevSeq(){
+	sndQueryDevSeq();
+	g_DevSeqTimerID = osa_add_timer(FETCH_TIMEOUT,fetchDevSeqTimeout,NULL,TIMER_ONCE);
+	OSA_mutexLock(&g_DevSeqSynMutex);	
+	return zwDevSeq;
 }
 
 //-----------zwArmyId----------------------
@@ -89,6 +120,100 @@ int getArmyId(){
 	OSA_mutexLock(&g_AmryIdSynMutex);	
 	return zwArmyId;
 }
+
+//-------------zwPhoneLen------------------------
+int zwPhoneLen = 0;
+OSA_MutexHndl    g_PhoneLenSynMutex;		/*mutex using to syn the query & response*/
+int			     g_PhoneLenTimerID;
+
+void initPhoneLen() {
+	zwPhoneLen = 0;
+	OSA_mutexCreate(&g_PhoneLenSynMutex);
+	OSA_mutexLock(&g_PhoneLenSynMutex);		/*decrease mutex to 0*/
+	freeTimer(g_PhoneLenTimerID);
+}
+
+void setPhoneLen(int PhoneLen){
+	zwPhoneLen = PhoneLen;
+	OSA_mutexUnlock(&g_PhoneLenSynMutex);
+	freeTimer(g_PhoneLenTimerID);
+}
+
+static void fetchPhoneLenTimeout(){
+	OSA_DBG_MSGX(" ");
+	zwPhoneLen = -1;
+	OSA_mutexUnlock(&g_PhoneLenSynMutex);
+}
+
+int getPhoneLen(){
+	sndQueryPhoneLen();
+	g_PhoneLenTimerID = osa_add_timer(FETCH_TIMEOUT,fetchPhoneLenTimeout,NULL,TIMER_ONCE);
+	OSA_mutexLock(&g_PhoneLenSynMutex);	
+	return zwPhoneLen;
+}
+
+//--------------zwAudioCodec--------------------
+int zwAudioCodec = 0;
+OSA_MutexHndl	 g_AudioCodecSynMutex;		/*mutex using to syn the query & response*/
+int 			 g_AudioCodecTimerID;
+
+void initAudioCodec() {
+	zwAudioCodec = 0;
+	OSA_mutexCreate(&g_AudioCodecSynMutex);
+	OSA_mutexLock(&g_AudioCodecSynMutex); 	/*decrease mutex to 0*/
+	freeTimer(g_AudioCodecTimerID);
+}
+
+void setAudioCodec(int AudioCodec){
+	zwAudioCodec = AudioCodec;
+	OSA_mutexUnlock(&g_AudioCodecSynMutex);
+	freeTimer(g_AudioCodecTimerID);
+}
+
+static void fetchAudioCodecTimeout(){
+	OSA_DBG_MSGX(" ");
+	zwAudioCodec = -1;
+	OSA_mutexUnlock(&g_AudioCodecSynMutex);
+}
+
+int getAudioCodec(){
+	sndQueryAudioCodec();
+	g_AudioCodecTimerID = osa_add_timer(FETCH_TIMEOUT,fetchAudioCodecTimeout,NULL,TIMER_ONCE);
+	OSA_mutexLock(&g_AudioCodecSynMutex); 
+	return zwAudioCodec;
+}
+
+//------------zwAsNum------------------------
+int zwAsNum = 0;
+OSA_MutexHndl	 g_AsNumSynMutex;		/*mutex using to syn the query & response*/
+int 			 g_AsNumTimerID;
+
+void initAsNum() {
+	zwAsNum = 2;
+	OSA_mutexCreate(&g_AsNumSynMutex);
+	OSA_mutexLock(&g_AsNumSynMutex); 	/*decrease mutex to 0*/
+	freeTimer(g_AsNumTimerID);
+}
+
+void setAsNum(int AsNum){
+	zwAsNum = AsNum;
+	OSA_mutexUnlock(&g_AsNumSynMutex);
+	freeTimer(g_AsNumTimerID);
+}
+
+static void fetchAsNumTimeout(){
+	OSA_DBG_MSGX(" ");
+	zwAsNum = -1;
+	OSA_mutexUnlock(&g_AsNumSynMutex);
+}
+
+int getAsNum(){
+	sndQueryAsNum();
+	g_AsNumTimerID = osa_add_timer(FETCH_TIMEOUT,fetchAsNumTimeout,NULL,TIMER_ONCE);
+	OSA_mutexLock(&g_AsNumSynMutex); 
+	return zwAsNum;
+}
+
 
 //-----------zwUsrNumTab----------------------
 #define USR_NUM_ITEM_MAX 100
