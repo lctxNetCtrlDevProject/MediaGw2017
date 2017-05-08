@@ -24,7 +24,7 @@ PUBLIC_OBJS = $(PUBLIC_SRCS:.c=.o)
 
 #==================mgwPara===================
 MGW_PARA_SRCS = mgwParaAccess.c zhenRFenjTable.c conferenceTable.c mediaGW.c \
-		zwParaAccess.c zhanSNet.c zwUsrTable.c
+		zwParaAccess.c zhanSNet.c zwUsrTable.c zwConfTable.c
 MGW_PARA_OBJS = $(MGW_PARA_SRCS:.c=.o)
 
 

@@ -171,7 +171,7 @@ static void loadZwUsrNumTab(){
 	}
 }
 
-int needClear = 1;
+static int needClear = 1;
 static void clearTab() {
 	struct zwUsrTable_entry *entry = NULL;
 

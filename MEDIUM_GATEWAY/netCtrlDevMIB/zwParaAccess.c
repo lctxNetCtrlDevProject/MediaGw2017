@@ -13,8 +13,8 @@
 #include "osa.h"
 
 /**************Macro**************************/
-#define FETCH_TIMEOUT		20		/* fetching time out 2000s*/
-
+#define FETCH_TIMEOUT		50		/* fetching time out 5000s*/
+#define DEBUG	1
 /************Global Variablies*******************/
 
 /*--WorkMode---*/
@@ -216,7 +216,6 @@ int getAsNum(){
 
 
 //-----------zwUsrNumTab----------------------
-#define USR_NUM_ITEM_MAX 100
 
 zwUsrNum_type g_zwUsrNumTab[USR_NUM_ITEM_MAX];
 int g_zwUsrNumTabItemCnt = 0;
@@ -282,3 +281,69 @@ zwUsrNum_type *getUsrNumTab(int *itemCnt){
 	OSA_DBG_MSGX(" itemCnt=%d ", *itemCnt);
 	return g_zwUsrNumTab;
 }
+
+//-----------zwConfTab----------------------
+
+zwConf_type g_zwConfTab[CONF_ITEM_MAX];
+int g_zwConfTabItemCnt = 0;
+OSA_MutexHndl g_zwConfSynMutex;		/*mutex using to syn the query & response*/
+int	g_zwConfTimerID;
+
+void initZwConfTab(){
+	memset(g_zwConfTab,0, sizeof(g_zwConfTab));
+	g_zwConfTabItemCnt = 0;
+	OSA_mutexCreate(&g_zwConfSynMutex);
+	OSA_mutexLock(&g_zwConfSynMutex);		/*decrease mutex to 0*/
+}
+
+void setZwConfTab(zwConf_type tab[], int itemCnt){
+
+	int i;
+	OSA_DBG_MSGX(" itemCnt=%d, sizeof(zwConf_type)=%d", itemCnt, sizeof(zwConf_type));
+	
+#if 1
+	if(!tab || itemCnt < 0 )
+		return;
+	freeTimer(g_zwConfTimerID);
+#else
+	freeTimer(g_zwUsrNumTimerID);
+
+	if(!tab || itemCnt <=0 ) {
+		g_zwUsrNumTabItemCnt = 0;
+		OSA_mutexUnlock(&g_zwUsrNumSynMutex);
+		return;
+	}
+#endif
+
+	if (itemCnt > CONF_ITEM_MAX)
+		itemCnt = CONF_ITEM_MAX;
+
+	g_zwConfTabItemCnt = itemCnt; 
+
+	memcpy(g_zwConfTab,tab,itemCnt*sizeof(zwConf_type));
+
+#if DEBUG
+	for (i = 0; i < itemCnt; i++)
+		dispBuf(&g_zwConfTab[i], sizeof(zwConf_type), __func__);
+#endif
+
+	OSA_mutexUnlock(&g_zwConfSynMutex);
+}
+
+static void fetchZwConfTabTimeout(){
+	OSA_DBG_MSGX(" ");
+	memset(g_zwConfTab,0 , sizeof(g_zwConfTab));
+	g_zwConfTabItemCnt = 0;
+	OSA_mutexUnlock(&g_zwConfSynMutex);
+}
+
+zwConf_type *getZwConfTab(int *itemCnt){
+
+	sndQueryZwConfTabAll();
+	g_zwConfTimerID = osa_add_timer(FETCH_TIMEOUT,fetchZwConfTabTimeout,NULL,TIMER_ONCE);
+	OSA_mutexLock(&g_zwConfSynMutex);	
+	*itemCnt = g_zwConfTabItemCnt;
+	OSA_DBG_MSGX(" itemCnt=%d ", *itemCnt);
+	return g_zwConfTab;
+}
+

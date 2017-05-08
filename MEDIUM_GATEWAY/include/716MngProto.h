@@ -41,6 +41,7 @@ typedef enum{
 	MSG_716_AS_NUM_GET_MSG = 0x8a,
 
 	MSG_716_USR_NUM_GET_MSG = 0x40,
+	MSG_716_CONF_GET_MSG = 0x41,
 }ZwMngInfoType;
 
 typedef enum{
@@ -82,6 +83,8 @@ typedef enum{
 	MSG_716_AS_NUM_GET_MSG_ACK = 0xca,
 	
 	MSG_716_USR_NUM_GET_MSG_ACK = 0x40,
+	MSG_716_CONF_GET_MSG_ACK = 0x41,
+
 }ZwMngReplyId;
 
 
@@ -109,6 +112,18 @@ typedef enum{
 	ZW_USR_REP_REG = 0x07,	/*report reg*/
 	ZW_USR_REP_DEL,			/*report del*/
 }ZwUsrMngOpeType;
+
+typedef enum{
+	ZW_CONF_REG = 0x01,
+	ZW_CONF_QUERY= 0x02,
+	ZW_CONF_DEL,
+	ZW_CONF_REQ_ACK,
+	ZW_CONF_QUERY_ACK,
+	ZW_CONF_DEL_ACK,
+	ZW_CONF_REP_REG = 0x07,	/*report reg*/
+	ZW_CONF_REP_DEL,			/*report del*/
+}ZwConfMngOpeType;
+
 
 #pragma pack(1)
 

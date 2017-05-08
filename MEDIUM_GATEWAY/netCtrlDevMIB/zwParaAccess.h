@@ -12,13 +12,26 @@
 #define USR_NUM_LEN 8
 #define SEC_NUM_LEN 4
 
+#define BCD_CONF_NUM_LEN 4
+#define BCD_CONF_PART_NUM_LEN 8
+#define USR_NUM_ITEM_MAX 100
+
+#define CONF_PART_CNT 16
+#define CONF_NUM_LEN 4
+#define CONF_PART_NUM_LEN 8
+#define CONF_ITEM_MAX 10
+
 typedef struct {
 	unsigned char chanId;
 	unsigned char usrNum[USR_NUM_LEN];
 	unsigned char secNum[SEC_NUM_LEN];
 }zwUsrNum_type;
 
-
+typedef struct {
+	unsigned short confNum;
+	unsigned char partCnt;
+	unsigned char partNum[CONF_PART_CNT][CONF_PART_NUM_LEN];
+}zwConf_type;
 
 extern void initZwMode();
 extern void setZwMode(int mode);

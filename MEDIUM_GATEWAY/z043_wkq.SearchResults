@@ -1,4 +1,3 @@
----- osa_init_timer Matches (3 in 3 files) ----
-Main.c (netctrldevmib):	osa_init_timer(20);
-Osa_timer.c (netctrldevmib\osa\src):int osa_init_timer(int count)
-Osa_timer.h (netctrldevmib\osa\inc):int osa_init_timer(int count);
+---- initUsrNumTab Matches (2 in 2 files) ----
+zwParaAccess.c (netctrldevmib):void initUsrNumTab(){
+zwUsrTable.c (netctrldevmib):    initUsrNumTab();

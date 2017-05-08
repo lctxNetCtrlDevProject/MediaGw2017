@@ -263,6 +263,40 @@ void sndQueryZwUsrNumTabIndex(uint16 index){
 	sndPktTo716Board((uint8 *)&ZxCmd,9);
 }
 
+void sndQueryZwConfTabIndex(uint16 index){
+	MNG_ZW_CONF_CFG_PKT ZxCmd;
+	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
+
+	ZxCmd.header.InfoType = MSG_716_CONF_GET_MSG;
+	ZxCmd.header.CmdLen = htons(6);
+	ZxCmd.CmdId = ZW_MEET_ALL_NUM;	
+	ZxCmd.OpMode = ZW_USR_QUERY;
+	ZxCmd.MsgLen = 3;
+	ZxCmd.Ack = 0;
+	ZxCmd.Index = htons(index);
+
+	OSA_DBG_MSG("%s_%d",__func__,__LINE__);
+	dispBuf((unsigned char *)&ZxCmd, 9, __func__);
+	
+	sndPktTo716Board((uint8 *)&ZxCmd,9);
+}
+
+
+void sndQueryZwConfTabAll(){
+	MNG_ZW_CONF_CFG_PKT ZxCmd;
+	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
+
+	ZxCmd.header.InfoType = MSG_716_CONF_GET_MSG;
+	ZxCmd.header.CmdLen = htons(3);
+	ZxCmd.CmdId = ZW_MEET_ALL_NUM;	
+	ZxCmd.OpMode = ZW_USR_QUERY;
+	ZxCmd.MsgLen = 0;
+
+	OSA_DBG_MSG(" ");
+	dispBuf((unsigned char *)&ZxCmd, 6, __func__);
+	
+	sndPktTo716Board((uint8 *)&ZxCmd,6);
+}
 
 //----------------------------Main Code----------------------------------------------
 
@@ -292,7 +326,7 @@ static void handle716Para(unsigned char *buf, int len){
 		}break;	
 		case MSG_716_USR_NUM_GET_MSG_ACK:{
 			static int zwUsrNum_index = 0;
-			static zwUsrNum_type zwUsrNum[100];
+			static zwUsrNum_type zwUsrNum[USR_NUM_ITEM_MAX];
 
 			if (buf[4] != ZW_USR_QUERY_ACK) //only handle query ack
 				break;
@@ -307,10 +341,36 @@ static void handle716Para(unsigned char *buf, int len){
 				zwUsrNum_index++; 
 				sndQueryZwUsrNumTabIndex((*(uint16 *)&buf[7]) + 1); //index
 			} else {//usrNum not exit, or the last usrNum
-				OSA_DBG_MSGX(" usrNum not exist");
+				OSA_DBG_MSGX(" usrNum is end, or not exist");
 				setUsrNumTab(zwUsrNum, zwUsrNum_index);
 				zwUsrNum_index = 0;
 				memset(zwUsrNum, 0, sizeof(zwUsrNum));
+			}
+		}break;
+		case MSG_716_CONF_GET_MSG_ACK:{
+			static int zwConf_index = 0;
+			static zwConf_type zwConf[CONF_ITEM_MAX];
+			int i;
+			
+			if (buf[4] != ZW_CONF_QUERY_ACK) //only handle query ack
+				break;
+
+			if (buf[6]) {//conf exit	
+				OSA_DBG_MSGX("zwConf_index =%d", zwConf_index);
+				zwConf[zwConf_index].confNum = *(uint16 *)&buf[9];
+				zwConf[zwConf_index].partCnt = buf[11];
+				for (i = 0; i < CONF_PART_CNT; i++) {
+					memcpy(&zwConf[zwConf_index].partNum[i], &buf[12 + 4*i], CONF_PART_NUM_LEN);
+				}
+				//memcpy(zwConf[zwConf_index].partNum, &buf[12], CONF_PART_NUM_LEN * buf[11]);
+				zwConf_index++; 
+				sndQueryZwConfTabIndex((*(uint16 *)&buf[7]) + 1); //index
+			} else {//conf not exit, or the last conf
+				OSA_DBG_MSGX(" conf is end, or not exist");
+				setZwConfTab(zwConf, zwConf_index);
+				zwConf_index = 0;
+				memset(zwConf, 0, sizeof(zwConf));			
+
 			}
 		}break;
 		default:{
