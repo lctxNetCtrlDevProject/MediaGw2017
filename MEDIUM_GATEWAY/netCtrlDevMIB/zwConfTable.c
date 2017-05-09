@@ -242,48 +242,10 @@ static void fillZwConfTableEntry(struct zwConfTable_entry *entry, zwConf_type *i
 
 	bcd_to_string(item->partNum[15], entry->zwPartNum15, BCD_CONF_PART_NUM_LEN);
 	entry->zwPartNum15_len = BCD_CONF_PART_NUM_LEN;	
-
-#if 0
-	bcd_to_string(item->usrNum,entry->usrNumber,BCD_USR_NUM_LEN);
-	entry->usrNumber_len= BCD_USR_NUM_LEN;//strlen(entry->usrNumber);
-	bcd_to_string(item->secNum,entry->secNum,BCD_SEC_NUM_LEN);
-	entry->secNum_len = BCD_SEC_NUM_LEN;//strlen(entry->secNum);
-	entry->chanId = item->chanId;
-	
-	OSA_DBG_MSGX("usrNum=%s, secNum=%s, chanId=%d",entry->usrNumber, entry->secNum, entry->chanId);
-#else
-
-#endif
 }
 
 static void loadZwConfTable(){
-#if 0
-	int itemCnt = -1, i;
-	zwUsrNum_type *tab = NULL;
-	struct zwUsrTable_entry *entry = NULL;
-	char usrNumber[USR_NUM_LEN];
 
-	tab = getUsrNumTab(&itemCnt);
-	OSA_DBG_MSGX(" itemCnt=%d", itemCnt);
-	if(!tab || itemCnt <=0){
-		OSA_ERROR("Can't load ZW Usr Num Table");
-		return;
-	}
-
-	if(zwUsrTable_head == NULL){
-		for(i = 0; i < itemCnt; i++){
-			bcd_to_string(tab[i].usrNum,usrNumber,BCD_USR_NUM_LEN);
-			zwUsrTable_createEntry(usrNumber, BCD_USR_NUM_LEN);
-		}
-	}	
-	entry = zwUsrTable_head;
-	i = 0;
-	while(entry){
-		fillZwUsrNumEntry(entry,&tab[i]);
-		i++;
-		entry = entry->next;
-	}
-#else
 	int itemCnt = -1, i;
 	zwConf_type *tab = NULL;
 	struct zwConfTable_entry *entry = NULL;
@@ -310,7 +272,6 @@ static void loadZwConfTable(){
 		i++;
 		entry = entry->next;
 	}
-#endif
 }
 
 static int needClear = 1;

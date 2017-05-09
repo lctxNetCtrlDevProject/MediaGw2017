@@ -37,6 +37,7 @@ void init_netCtrlDevMIB(){
 	init_zhanSNet();
 	init_zwUsrTable();
 	init_zwConfTable();	
+	init_zwZxTable();
 	/*Start thread of Rcving pdu from board*/
 	startAgentRcvPduThr();
 

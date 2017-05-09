@@ -1,3 +1,4 @@
----- initUsrNumTab Matches (2 in 2 files) ----
-zwParaAccess.c (netctrldevmib):void initUsrNumTab(){
-zwUsrTable.c (netctrldevmib):    initUsrNumTab();
+---- setConfTabItem Matches (3 in 3 files) ----
+mgwParaAccess.c (netctrldevmib):void setConfTabItem(confTab_type *item, int i){
+mgwParaAccess.h (netctrldevmib):extern void setConfTabItem(confTab_type *item, int i);
+paraMng.c (netctrldevmib):				setConfTabItem(item,i);

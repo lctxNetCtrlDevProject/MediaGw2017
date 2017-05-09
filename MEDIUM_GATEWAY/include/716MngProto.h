@@ -42,6 +42,7 @@ typedef enum{
 
 	MSG_716_USR_NUM_GET_MSG = 0x40,
 	MSG_716_CONF_GET_MSG = 0x41,
+	MSG_716_ZHUAN_XIAN_GET_MSG = 0x42,
 }ZwMngInfoType;
 
 typedef enum{
@@ -84,7 +85,7 @@ typedef enum{
 	
 	MSG_716_USR_NUM_GET_MSG_ACK = 0x40,
 	MSG_716_CONF_GET_MSG_ACK = 0x41,
-
+	MSG_716_ZHUAN_XIAN_GET_MSG_ACK = 0x42,
 }ZwMngReplyId;
 
 
@@ -124,6 +125,16 @@ typedef enum{
 	ZW_CONF_REP_DEL,			/*report del*/
 }ZwConfMngOpeType;
 
+typedef enum{
+	ZW_ZHUANXIAN_REG = 0x01,
+	ZW_ZHUANXIAN_QUERY= 0x02,
+	ZW_ZHUANXIAN_DEL,
+	ZW_ZHUANXIAN_REQ_ACK,
+	ZW_ZHUANXIAN_QUERY_ACK,
+	ZW_ZHUANXIAN_DEL_ACK,
+	ZW_ZHUANXIAN_REP_REG = 0x07,	/*report reg*/
+	ZW_ZHUANXIAN_REP_DEL,			/*report del*/
+}ZwZxMngOpeType;
 
 #pragma pack(1)
 

@@ -298,6 +298,38 @@ void sndQueryZwConfTabAll(){
 	sndPktTo716Board((uint8 *)&ZxCmd,6);
 }
 
+void sndQueryZwZxTabIndex(uint16 index){
+	MNG_ZW_ZX_CFG_PKT ZxCmd;
+	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
+
+	ZxCmd.header.InfoType = MSG_716_ZHUAN_XIAN_GET_MSG;
+	ZxCmd.header.CmdLen = htons(6);
+	ZxCmd.CmdId = ZX_ZX_ALL_NUM;	
+	ZxCmd.OpMode = ZW_ZHUANXIAN_QUERY;
+	ZxCmd.MsgLen = 3;
+	ZxCmd.type = 1;
+	ZxCmd.Index = index;
+
+	dispBuf((unsigned char *)&ZxCmd, 9, __func__);
+	sndPktTo716Board((uint8 *)&ZxCmd,9);
+}
+
+void sndQueryZwZxAll(){
+	MNG_ZW_ZX_CFG_PKT ZxCmd;
+	memset(&ZxCmd, 0x0, sizeof(ZxCmd));
+
+	ZxCmd.header.InfoType = MSG_716_ZHUAN_XIAN_GET_MSG;
+	ZxCmd.header.CmdLen = htons(6);
+	ZxCmd.CmdId = ZX_ZX_ALL_NUM;	
+	ZxCmd.OpMode = ZW_ZHUANXIAN_QUERY;
+	ZxCmd.MsgLen = 3;
+	ZxCmd.type = 1;
+	ZxCmd.Index = 0;
+
+	dispBuf((unsigned char *)&ZxCmd, 9, __func__);
+	sndPktTo716Board((uint8 *)&ZxCmd,9);
+}
+
 //----------------------------Main Code----------------------------------------------
 
 static void handle716Para(unsigned char *buf, int len){
@@ -373,6 +405,27 @@ static void handle716Para(unsigned char *buf, int len){
 
 			}
 		}break;
+		case MSG_716_ZHUAN_XIAN_GET_MSG_ACK:{
+			static int zwZx_index = 0;
+			static zwZx_type zwZx[ZHUAN_XIAN_ITEM_MAX];
+			int i;
+			
+			if (buf[4] != ZW_ZHUANXIAN_QUERY_ACK) //only handle query ack
+				break;
+
+			if (buf[9]) {//zhuanxian exit	
+				OSA_DBG_MSGX("zwZx_index =%d", zwZx_index);
+				memcpy(&zwZx[zwZx_index], &buf[10], sizeof(zwZx_type));
+				zwZx_index++; 
+				sndQueryZwZxTabIndex((*(uint16 *)&buf[7]) + 1); //index
+			} else {
+				OSA_DBG_MSGX(" ZhuanXian is end, or not exist");
+				setZwZxTab(zwZx, zwZx_index);
+				zwZx_index = 0;
+				memset(zwZx, 0, sizeof(zwZx));			
+
+			}
+		}break;		
 		default:{
 		}
 	}		

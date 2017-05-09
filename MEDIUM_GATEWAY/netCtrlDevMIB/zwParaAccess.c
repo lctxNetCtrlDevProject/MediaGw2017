@@ -301,19 +301,9 @@ void setZwConfTab(zwConf_type tab[], int itemCnt){
 	int i;
 	OSA_DBG_MSGX(" itemCnt=%d, sizeof(zwConf_type)=%d", itemCnt, sizeof(zwConf_type));
 	
-#if 1
 	if(!tab || itemCnt < 0 )
 		return;
 	freeTimer(g_zwConfTimerID);
-#else
-	freeTimer(g_zwUsrNumTimerID);
-
-	if(!tab || itemCnt <=0 ) {
-		g_zwUsrNumTabItemCnt = 0;
-		OSA_mutexUnlock(&g_zwUsrNumSynMutex);
-		return;
-	}
-#endif
 
 	if (itemCnt > CONF_ITEM_MAX)
 		itemCnt = CONF_ITEM_MAX;
@@ -346,4 +336,56 @@ zwConf_type *getZwConfTab(int *itemCnt){
 	OSA_DBG_MSGX(" itemCnt=%d ", *itemCnt);
 	return g_zwConfTab;
 }
+
+
+//-----------zwZxTab----------------------
+
+zwZx_type g_zwZxTab[ZHUAN_XIAN_ITEM_MAX];
+int g_zwZxTabItemCnt = 0;
+OSA_MutexHndl g_zwZxSynMutex;		/*mutex using to syn the query & response*/
+int	g_zwZxTimerID;
+
+void initZwZxTab(){
+	memset(g_zwZxTab,0, sizeof(g_zwZxTab));
+	g_zwZxTabItemCnt = 0;
+	OSA_mutexCreate(&g_zwZxSynMutex);
+	OSA_mutexLock(&g_zwZxSynMutex);		/*decrease mutex to 0*/
+}
+
+void setZwZxTab(zwZx_type tab[], int itemCnt){
+
+	int i;
+	OSA_DBG_MSGX(" itemCnt=%d", itemCnt);
+	
+	if(!tab || itemCnt < 0 )
+		return;
+	freeTimer(g_zwZxTimerID);
+
+
+	if (itemCnt > ZHUAN_XIAN_ITEM_MAX)
+		itemCnt = ZHUAN_XIAN_ITEM_MAX;
+
+	g_zwZxTabItemCnt = itemCnt; 
+
+	memcpy(g_zwZxTab,tab,itemCnt*sizeof(zwZx_type));
+
+	OSA_mutexUnlock(&g_zwZxSynMutex);
+}
+
+static void fetchZwZxTabTimeout(){
+	OSA_DBG_MSGX(" ");
+	memset(g_zwZxTab,0 , sizeof(g_zwZxTab));
+	g_zwZxTabItemCnt = 0;
+	OSA_mutexUnlock(&g_zwZxSynMutex);
+}
+
+zwZx_type *getZwZxTab(int *itemCnt){
+	sndQueryZwZxAll();
+	g_zwZxTimerID = osa_add_timer(FETCH_TIMEOUT,fetchZwZxTabTimeout,NULL,TIMER_ONCE);
+	OSA_mutexLock(&g_zwZxSynMutex);	
+	*itemCnt = g_zwZxTabItemCnt;
+	OSA_DBG_MSGX(" itemCnt=%d ", *itemCnt);
+	return g_zwZxTab;
+}
+
 

@@ -21,6 +21,10 @@
 #define CONF_PART_NUM_LEN 8
 #define CONF_ITEM_MAX 10
 
+#define BCD_ARMY_NUM_LEN 3
+
+#define ZHUAN_XIAN_ITEM_MAX 10
+
 typedef struct {
 	unsigned char chanId;
 	unsigned char usrNum[USR_NUM_LEN];
@@ -32,6 +36,14 @@ typedef struct {
 	unsigned char partCnt;
 	unsigned char partNum[CONF_PART_CNT][CONF_PART_NUM_LEN];
 }zwConf_type;
+
+typedef struct {
+	unsigned char phoneId;
+	unsigned char port;
+	unsigned short army;
+	unsigned int calleeNum;
+	unsigned char zxStatus;
+}zwZx_type;
 
 extern void initZwMode();
 extern void setZwMode(int mode);
