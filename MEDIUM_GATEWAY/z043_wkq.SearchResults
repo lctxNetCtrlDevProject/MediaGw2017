@@ -1,4 +1,6 @@
----- setConfTabItem Matches (3 in 3 files) ----
-mgwParaAccess.c (netctrldevmib):void setConfTabItem(confTab_type *item, int i){
-mgwParaAccess.h (netctrldevmib):extern void setConfTabItem(confTab_type *item, int i);
-paraMng.c (netctrldevmib):				setConfTabItem(item,i);
+---- SocketT_BoardNetMngIP_50 Matches (5 in 1 files) ----
+MGW_lan_bus_control.c (src):struct sockaddr_in SocketT_BoardNetMngIP_50;
+MGW_lan_bus_control.c (src):	ret = Socket_Send(gRpcBoardNetMngSocket_50, (struct sockaddr_in*)&SocketT_BoardNetMngIP_50, buf, len);
+MGW_lan_bus_control.c (src):	SocketT_BoardNetMngIP_50.sin_family = AF_INET;
+MGW_lan_bus_control.c (src):	SocketT_BoardNetMngIP_50.sin_addr.s_addr = htonl(inet_addr(PAOFANG_BRD_MNG_IP));
+MGW_lan_bus_control.c (src):	SocketT_BoardNetMngIP_50.sin_port = htonl(PAOFANG_BRD_MNG_PORT);

@@ -60,6 +60,8 @@ static pthread_t rpcBoard716MngThrdId;
 static pthread_t rpcBoard716RayMngThrdId;
 static pthread_t rpcBoard716RadioMngThrdId;
 static pthread_t rpcBoard50MngThrdId;
+static pthread_t rpcBoard50NetMngThrdId;
+
 
 static pthread_t rpcSwPhoneDatThrdId;
 static pthread_t rpcSwPhoneVocThrdId;
@@ -301,6 +303,10 @@ static int32 ip_addr_config(void)
 				mgw_sys_exec(cmd_str);	
 				usleep(50 * 1000);
 			}
+
+			snprintf(cmd_str, sizeof(cmd_str), "ifconfig eth0:5 %s netmask 255.255.255.0", PAOFANG_BRD_MNG_IP_LOCAL);
+			mgw_sys_exec(cmd_str);	
+			usleep(50 * 1000);
 
 			break;
 		case WORK_MODE_JILIAN:
@@ -632,6 +638,7 @@ int main(int argc, char *argv[])
 	Board_50_Mng_Socket_init();
 	RpcDisplayMng_Zhuangjia_From_dis_Socket_init();
 	RpcDisplayMng_from_716_Socket_init();	
+	Board_50_Net_Mng_Socket_init();
 
 	while(1)
 	{
@@ -751,9 +758,13 @@ int main(int argc, char *argv[])
 	inc_pthread_create(&rpcBoard50MngThrdId,NULL,(void *)Board_50_Mng_RxThread, NULL);	
 	inc_pthread_create(&rpcDisplay_zhuangjiaThrdId,NULL,(void *)RpcDisplayMng_Zhuangjia_From_dis_RxThread, NULL);		
 	inc_pthread_create(&rpcDisplay_zhuangjia716ThrdId,NULL,(void *)RpcDisplayMng_Zhuangjia_from_716_RxThread, NULL);
+	inc_pthread_create(&rpcBoard50NetMngThrdId,NULL,(void *)Board_50_Net_Mng_RxThread, NULL);	
+
 	ParaInject();
 	// here, we bind *:30006 in RpcSeatMng_RxThread. so , this one do not need RpcSeatMng_Default_RxThread
 	//by -Andy-wei.hou 2017.02.20
+
+	test_example_board_50();
 
 	inc_pthread_create(&thread_monitor,NULL,do_monitor,NULL);
 

@@ -168,6 +168,13 @@ int sched_runq(struct sched_context *con);
 #define HF_MGW_SCU_SCUDATA_IP  		"192.168.254.2" 
 #define HF_MGW_SCU_SCUDATA_PORT		50718
 
+/* follw PaoFangWangGuangXieYi spec, used to transfer mng msg with 50PaoFang, mainly for 50PaoFang para inject */
+#define PAOFANG_BRD_MNG_IP "192.168.50.50"
+#define PAOFANG_BRD_MNG_IP_LOCAL "192.168.50.51"
+#define PAOFANG_BRD_MNG_PORT 50050
+#define PAOFANG_BRD_MNG_PORT_LOCAL 50003
+
+
 #undef ZHUANXIAN_VOICE_CTRL
 //#define ZHUANXIAN_VOICE_CTRL
 

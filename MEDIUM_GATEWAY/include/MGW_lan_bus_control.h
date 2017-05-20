@@ -74,6 +74,7 @@ void Board_716_Mng_RxThread(void);
 void Board_716_Ray_Mng_RxThread(void);
 void Board_50_Mng_RxThread(void);
 void Board_50_Mng_before_RxThread(void);
+void Board_50_Net_Mng_RxThread(void);
 void Board_716_Radio_RxThread(void);
 void RpcDisplayMng_Zhuangjia_From_dis_RxThread(void);
 int32 RpcDisplayMng_Zhuangjia_From_dis_Socket_init(void);

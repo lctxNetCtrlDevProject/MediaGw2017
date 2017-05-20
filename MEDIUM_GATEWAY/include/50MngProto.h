@@ -30,6 +30,12 @@ typedef struct __Mng_Pf_Node_Addr_Msg__
 	uint32 NodeAddr;
 }__attribute__((packed))MNG_Pf_Node_Addr_MSG;
 
+typedef struct __Mng_Pf_Addr_Msg__
+{
+	uint8 InfoType[3];
+	uint32 IPAddr;
+	uint8 Mask;
+}__attribute__((packed))MNG_Pf_Addr_MSG;
 
 typedef struct __Mng_Pf_VHF_Inf_Type_Msg__
 {

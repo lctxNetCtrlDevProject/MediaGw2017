@@ -35,6 +35,8 @@ int 	gRpcBoardMngSocket_716_Radio = 0;
 int 	gRpcBoardMngSocket_716_Ray = 0;
 int 	gRpcBoardMngSocket_50 = 0;
 int 	gRpcBoardMngSocket_50_before = 0;
+int 	gRpcBoardNetMngSocket_50 = 0;
+
 
 struct sockaddr_in SocketT_DbgIP;	
 struct sockaddr_in SocketT_DisPlayIP;	
@@ -49,7 +51,9 @@ struct sockaddr_in SocketT_BoardMngIP_716;
 struct sockaddr_in SocketT_BoardMngIP_716_Radio;	
 struct sockaddr_in SocketT_BoardMngIP_716_Ray;	
 struct sockaddr_in SocketT_BoardMngIP_50;	
-struct sockaddr_in SocketT_BoardMngIP_50_before;	
+struct sockaddr_in SocketT_BoardMngIP_50_before;
+struct sockaddr_in SocketT_BoardNetMngIP_50;
+
 
 struct sockaddr_in Terminal_I_IP;	//指控I型信令集成IP
 struct sockaddr_in Terminal_I_IPV;	//指控I型话音集成IP
@@ -172,6 +176,33 @@ int32 Board_Mng_SendTo_50(uint8 *buf, int32 len)
 	
 	return DRV_OK;
 }
+
+int32 Board_Net_Mng_SendTo_50(uint8 *buf, int32 len)
+{
+	int i = 0;
+	int ret = -1;
+	
+	if(flag_dump == DUMP_OPEN)
+	{
+		printf("%s\r\n", __func__);
+		for(i = 0; i < len; i++)
+		{
+			printf("%02x:", buf[i]);
+		}
+		printf("\r\n");
+	}
+
+	ret = Socket_Send(gRpcBoardNetMngSocket_50, (struct sockaddr_in*)&SocketT_BoardNetMngIP_50, buf, len);
+	if(DRV_ERR == ret)
+	{
+		printf("%s send error\r\n", __func__);
+		return DRV_ERR;
+	}
+	
+	
+	return DRV_OK;
+}
+
 
 int32 Board_Mng_SendTo_716_Ray(uint8 *buf, int32 len)
 {
@@ -1369,6 +1400,83 @@ int32 Board_50_Mng_Socket_Close(void)
 	if(gRpcBoardMngSocket_50)
 	{
 		close(gRpcBoardMngSocket_50);
+	}
+
+	return DRV_OK;
+}
+
+/* mainly for 50PaoFang para inject, transfter net mng cmd with 50 PaoFang. follow PaoFangWangGuanXieYi spec.*/
+void Board_50_Net_Mng_RxThread(void)
+{
+	struct sockaddr_in remote_addr;
+	uint8 abuf[MAX_SOCKET_LEN] = {0};
+	int Rec_Len;
+	int len;
+	int i = 0;	
+
+	printf("%s start !\r\n", __func__);
+	
+	while (1)
+	{
+		if((Rec_Len = recvfrom(gRpcBoardNetMngSocket_50, abuf, MAX_SOCKET_LEN, 0,
+		   (struct sockaddr *)&remote_addr, &len)) != DRV_ERR)
+		{	
+			if(1)//flag_dump == DUMP_OPEN)
+			{
+				printf("%s\r\n", __func__);
+				for(i = 0; i < Rec_Len; i++)
+				{
+					printf("%02x:", abuf[i]);
+				}
+				printf("\r\n");	
+			}
+
+			//signalQueryEvent(*(uint16 *)(&rcv->Data[1]));
+		}
+	}
+}
+
+/* follow <Pao Fang Wang Guan Xie Yi> 
+* local IP: 192.168.50.51, port:50003. use this local IP to transfter net mng msg with 50PaoFang
+* 50PaoFang has a default IP: 192.168.50.50, port:50050
+*/
+int32 Board_50_Net_Mng_Socket_init(void)
+{
+	struct sockaddr_in my_addr;
+
+	/* don't set remote socket, dynaic config  */
+	memset(&my_addr, 0x00, sizeof(my_addr));
+
+	SocketT_BoardNetMngIP_50.sin_family = AF_INET;
+	SocketT_BoardNetMngIP_50.sin_addr.s_addr = htonl(inet_addr(PAOFANG_BRD_MNG_IP));
+	SocketT_BoardNetMngIP_50.sin_port = htonl(PAOFANG_BRD_MNG_PORT);
+
+	/* local socket setting  */
+	my_addr.sin_family = AF_INET;
+	my_addr.sin_port = htonl(PAOFANG_BRD_MNG_PORT_LOCAL);	
+	my_addr.sin_addr.s_addr = htonl(inet_addr(PAOFANG_BRD_MNG_IP_LOCAL));	
+	
+	if ((gRpcBoardNetMngSocket_50 = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+	{
+		ERR("cann't create 50-Net-Mng socket.\n");
+		return DRV_ERR;
+	}
+
+	if (DRV_ERR == bind(gRpcBoardNetMngSocket_50, (struct sockaddr *)&my_addr, sizeof(my_addr)))
+	{
+		ERR("Bind %s\n", __func__);
+		close(gRpcBoardNetMngSocket_50);
+		return DRV_ERR;
+	}
+
+	return DRV_OK;
+}
+
+int32 Board_50_Net_Mng_Socket_Close(void)
+{
+	if(gRpcBoardNetMngSocket_50)
+	{
+		close(gRpcBoardNetMngSocket_50);
 	}
 
 	return DRV_OK;

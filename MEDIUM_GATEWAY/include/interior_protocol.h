@@ -668,6 +668,22 @@ typedef struct __MNG_50_MSG__
 	uint8  Data[MNG_50_MSG_LEN];//数据
 }__attribute__((packed))MNG_50_MSG;
 
+typedef struct 
+{
+	uint8 Header[6];
+	uint32 SrcAddr;
+	uint8 DstAddrNum;
+	uint32 DstAddr;
+	uint16 MsgLen;
+	uint8 ZhuanYiTab;//refer to <Pao Fang Wang Guan Xie Yi>, ZhuanYiTable has two type: A0 and C0. 
+}__attribute__((packed))NET_MNG_50_MSG_HEAD;
+
+typedef struct 
+{
+	NET_MNG_50_MSG_HEAD Head;
+	uint8  Data[MNG_50_MSG_LEN];//数据
+}__attribute__((packed))NET_MNG_50_MSG;
+
 enum 
 {
 	EN_PORT_50MAINCTRL = 0x10,
@@ -740,9 +756,7 @@ typedef struct __Mng_Zw_ZhuanXian_Msg__
 }__attribute__((packed))MNG_ZW_ZHUANXIAN_MSG;
 #endif
 
-//++++++++++++
 
-//--------------
 typedef struct __Mng_ZwZx_Query_Msg__
 {
 	//uint8 DstAddr;
