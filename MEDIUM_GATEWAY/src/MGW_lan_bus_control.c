@@ -37,6 +37,8 @@ int 	gRpcBoardMngSocket_50 = 0;
 int 	gRpcBoardMngSocket_50_before = 0;
 int 	gRpcBoardNetMngSocket_50 = 0;
 
+uint32 paofang50_mng_ip;
+
 
 struct sockaddr_in SocketT_DbgIP;	
 struct sockaddr_in SocketT_DisPlayIP;	
@@ -1405,14 +1407,28 @@ int32 Board_50_Mng_Socket_Close(void)
 	return DRV_OK;
 }
 
+#define PAOFANG50_MNG_SET_IP_ADDR_CMD 0xa000
+
+uint32 get_paofang50_mng_ip() {
+
+	return paofang50_mng_ip;
+}
+
+void set_paofang50_mng_ip(uint32 ipAddr) {
+
+	paofang50_mng_ip = ipAddr;
+}
+
 /* mainly for 50PaoFang para inject, transfter net mng cmd with 50 PaoFang. follow PaoFangWangGuanXieYi spec.*/
 void Board_50_Net_Mng_RxThread(void)
 {
 	struct sockaddr_in remote_addr;
 	uint8 abuf[MAX_SOCKET_LEN] = {0};
+	NET_MNG_50_MSG *pMsg = (NET_MNG_50_MSG *)abuf;
 	int Rec_Len;
 	int len;
-	int i = 0;	
+	int i = 0;
+	uint16 replyId;
 
 	printf("%s start !\r\n", __func__);
 	
@@ -1431,6 +1447,19 @@ void Board_50_Net_Mng_RxThread(void)
 				printf("\r\n");	
 			}
 
+			SrcToZhuanYiCode(pMsg->Head.ZhuanYiTab, pMsg->Data, Rec_Len-sizeof(pMsg->Head));
+			replyId = *(uint16 *)&pMsg->Data[1];
+			printf("%s, replyId=0x%x \n", __func__, replyId);
+			
+			switch(replyId) {
+			case PAOFANG50_MNG_SET_IP_ADDR_CMD:
+				paofang50_mng_ip = ntohl(*(uint32 *)&pMsg->Data[4]);
+				printf("%s, paofang50_mng_ip=0x%x\n", __func__, paofang50_mng_ip);
+				break;
+			default:
+				break;
+			}
+	
 			//signalQueryEvent(*(uint16 *)(&rcv->Data[1]));
 		}
 	}

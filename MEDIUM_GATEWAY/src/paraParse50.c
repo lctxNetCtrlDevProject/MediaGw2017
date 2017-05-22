@@ -135,7 +135,7 @@ static void sendMsgTo50Board(uint8 *pMsg, int size){
 	waitQueryEventTimed(ge50RespOrder(*(uint16 *)&pMsg[1]), 1000*2);//pMsg[0]:InfoType, is wait condition
 }
 
-static void SrcToZhuanYiCode(int codeFormat, uint8 *data, int len)
+void SrcToZhuanYiCode(int codeFormat, uint8 *data, int len)
 {
 	int i = 0;
 	uint8 src = 0, dst = 0, tmp = 0;
@@ -189,7 +189,7 @@ static void sendNetMngMsgTo50Board(uint8 *pMsg, int size){
 	memcpy(mngMsg.Head.Header, header, 6);
 	mngMsg.Head.SrcAddr = inet_addr(PAOFANG_BRD_MNG_IP_LOCAL);
 	mngMsg.Head.DstAddrNum = 1;
-	mngMsg.Head.DstAddr = inet_addr("50.1.36.167");
+	mngMsg.Head.DstAddr = get_paofang50_mng_ip();//paofang50_mng_ip;//inet_addr("50.1.36.167");
 	mngMsg.Head.MsgLen = size + 1;
 	mngMsg.Head.ZhuanYiTab = 0xc0;
 
@@ -203,7 +203,7 @@ static void sendNetMngMsgTo50Board(uint8 *pMsg, int size){
 	//waitQueryEventTimed(ge50RespOrder(*(uint16 *)&pMsg[1]), 1000*2);//pMsg[0]:InfoType, is wait condition
 }
 
-
+#if 0
 int Board_Mng_50_Handshake()
 {
 
@@ -218,6 +218,19 @@ int Board_Mng_50_Handshake()
 	
 	return DRV_OK;
 }
+#else
+int Board_Mng_50_Handshake()
+{
+	uint8 cmdId[4] = {0, 0x20, 0, 0x01};
+
+	set_paofang50_mng_ip(inet_addr("255.255.255.255"));
+	
+	sendNetMngMsgTo50Board((uint8 *)&cmdId,sizeof(cmdId));
+	
+	return DRV_OK;
+}
+#endif
+
 
 #if 0
 int Board_Mng_50_Set_Node_Addr(uint32 NodeAddr)
@@ -285,7 +298,7 @@ int test_example_board_50()
 
 	//Board_Mng_50_Set_VHF_Inf_Type(1, 1);
 	
-	Board_Mng_50_Set_Node_Addr(htonl(inet_addr("50.1.36.166")), 28);
+	Board_Mng_50_Set_Node_Addr(htonl(inet_addr("50.1.36.162")), 27);
 
 	return 0;
 }
