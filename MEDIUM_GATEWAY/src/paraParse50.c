@@ -7,18 +7,6 @@
 #include "50MngProto.h"
 
 
-typedef struct
-{
-	uint16 cmdId;
-	uint16 replyId;
-} PfCmdReplyMap;
-
-PfCmdReplyMap PfCmdReplyArray[] = {
-	PF_INFO_TYPE_HANDSHAKE_CFG, PF_INFO_TYPE_HANDSHAKE_CFG_ACK,
-	PF_INFO_TYPE_NODE_ADDR_CFG, PF_INFO_TYPE_NODE_ADDR_CFG_ACK,
-	PF_INFO_TYPE_VHF_INF_TYPE_CFG, PF_INFO_TYPE_VHF_INF_TYPE_CFG_ACK,
-};
-
 /* 炮防网管协议
 * 采用半字节转义，有两种转义表，标识C0和A0各代表一种
 */
@@ -68,19 +56,17 @@ ZhuanYiTab ZhuanYiTabA0[] = {
 	{0xf, 5},
 };
 
+typedef struct
+{
+	uint16 cmdId;
+	uint16 replyId;
+} PfCmdReplyMap;
 
-uint16 ge50RespOrder(uint16 queryOrder){
-	int i;
-
-	for (i = 0; i < sizeof(PfCmdReplyArray)/sizeof(PfCmdReplyArray[0]); i++) {
-		if (queryOrder == PfCmdReplyArray[i].cmdId)
-			return PfCmdReplyArray[i].replyId;
-	}
-
-	printf("%s, cann't find queryOrder! ERROR! \r\n", __func__);
-	
-	return queryOrder;	
-}
+PfCmdReplyMap PfCmdReplyArray[] = {
+	PF_INFO_TYPE_HANDSHAKE_CFG, PF_INFO_TYPE_HANDSHAKE_CFG_ACK,
+	PF_INFO_TYPE_NODE_ADDR_CFG, PF_INFO_TYPE_NODE_ADDR_CFG_ACK,
+	//PF_INFO_TYPE_VHF_INF_TYPE_CFG, PF_INFO_TYPE_VHF_INF_TYPE_CFG_ACK,
+};
 
 static void dump_buf(unsigned char* str, const unsigned char* buf,int count)
 {
@@ -96,6 +82,23 @@ static void dump_buf(unsigned char* str, const unsigned char* buf,int count)
 	return;
 }
 
+uint16 ge50RespOrder(uint16 queryOrder){
+	int i;
+
+	for (i = 0; i < sizeof(PfCmdReplyArray)/sizeof(PfCmdReplyArray[0]); i++) {
+		if (queryOrder == PfCmdReplyArray[i].cmdId)
+			return PfCmdReplyArray[i].replyId;
+	}
+
+	printf("%s, cann't find queryOrder! ERROR! \r\n", __func__);
+	
+	return queryOrder;	
+}
+
+/* follow <携行式通信网络控制设备 设备参数管理接口协议V1.2(20160907)>
+however, many cmd not support, so this func may not work, reserve this func as a backup.
+Instead, please use sendNetMngMsgTo50Board() api to send net management cmd to PaoFang50.
+*/
 static void sendMsgTo50Board(uint8 *pMsg, int size){
 	MNG_50_MSG Regmsg;
 	int len = 0;
@@ -131,8 +134,7 @@ static void sendMsgTo50Board(uint8 *pMsg, int size){
 	dump_buf(__func__, (uint8 *)&Regmsg, len);
 	
 	Board_Mng_SendTo_50((uint8 *)&Regmsg, len);
-
-	waitQueryEventTimed(ge50RespOrder(*(uint16 *)&pMsg[1]), 1000*2);//pMsg[0]:InfoType, is wait condition
+	waitQueryEventTimed(ge50RespOrder(*(uint16 *)&pMsg[1]), 1000*2);//pMsg[1]:InfoType, is wait condition
 }
 
 void SrcToZhuanYiCode(int codeFormat, uint8 *data, int len)
@@ -175,7 +177,9 @@ void SrcToZhuanYiCode(int codeFormat, uint8 *data, int len)
 	dump_buf(__func__, data, len);
 }
 
-
+/* send net management cmd to PaoFang50.
+follow <Pao Fang Wang Guan Xie Yi>
+*/
 static void sendNetMngMsgTo50Board(uint8 *pMsg, int size){
 	uint8 header[6] = {0x0, 0x49, 0xf, 0, 0, 0};
 	NET_MNG_50_MSG mngMsg;
@@ -184,12 +188,11 @@ static void sendNetMngMsgTo50Board(uint8 *pMsg, int size){
 	if(!pMsg || size <0)
 		return;
 	
-	memset(&mngMsg, 0, sizeof(mngMsg));
-	
+	memset(&mngMsg, 0, sizeof(mngMsg));	
 	memcpy(mngMsg.Head.Header, header, 6);
 	mngMsg.Head.SrcAddr = inet_addr(PAOFANG_BRD_MNG_IP_LOCAL);
 	mngMsg.Head.DstAddrNum = 1;
-	mngMsg.Head.DstAddr = get_paofang50_mng_ip();//paofang50_mng_ip;//inet_addr("50.1.36.167");
+	mngMsg.Head.DstAddr = get_paofang50_mng_ip();
 	mngMsg.Head.MsgLen = size + 1;
 	mngMsg.Head.ZhuanYiTab = 0xc0;
 
@@ -199,8 +202,11 @@ static void sendNetMngMsgTo50Board(uint8 *pMsg, int size){
 	dump_buf(__func__, (uint8 *)&mngMsg, len);
 	
 	Board_Net_Mng_SendTo_50((uint8 *)&mngMsg, len);
+}
 
-	//waitQueryEventTimed(ge50RespOrder(*(uint16 *)&pMsg[1]), 1000*2);//pMsg[0]:InfoType, is wait condition
+static void sendNetMngMsgTo50Board_sync(uint8 *pMsg, int size, uint16 condition){
+	sendNetMngMsgTo50Board(pMsg, size);
+	waitQueryEventTimed(condition, 1000*5);
 }
 
 #if 0
@@ -224,8 +230,7 @@ int Board_Mng_50_Handshake()
 	uint8 cmdId[4] = {0, 0x20, 0, 0x01};
 
 	set_paofang50_mng_ip(inet_addr("255.255.255.255"));
-	
-	sendNetMngMsgTo50Board((uint8 *)&cmdId,sizeof(cmdId));
+	sendNetMngMsgTo50Board_sync((uint8 *)&cmdId,sizeof(cmdId), PF_INFO_TYPE_HANDSHAKE_CFG_ACK);
 	
 	return DRV_OK;
 }
@@ -235,7 +240,6 @@ int Board_Mng_50_Handshake()
 #if 0
 int Board_Mng_50_Set_Node_Addr(uint32 NodeAddr)
 {
-
 	MNG_Pf_Node_Addr_MSG PfCmd;
 	memset(&PfCmd, 0x0, sizeof(PfCmd));
 
@@ -245,9 +249,7 @@ int Board_Mng_50_Set_Node_Addr(uint32 NodeAddr)
 	PfCmd.NodeAddr = htonl(NodeAddr);
 	
 	sendMsgTo50Board((uint8 *)&PfCmd,sizeof(PfCmd));
-
 	printf("%s NodeAddr=0x%x \n", __func__, NodeAddr);
-	
 	return DRV_OK;
 }
 #else
@@ -261,14 +263,125 @@ int Board_Mng_50_Set_Node_Addr(uint32 NodeAddr, uint8 mask)
 	PfCmd.IPAddr= htonl(NodeAddr);
 	PfCmd.Mask = mask;
 	
-	sendNetMngMsgTo50Board((uint8 *)&PfCmd,sizeof(PfCmd));
-
+	sendNetMngMsgTo50Board_sync((uint8 *)&PfCmd,sizeof(PfCmd), PF_INFO_TYPE_NODE_ADDR_CFG_ACK);
 	printf("%s NodeAddr=0x%x, mask=%d\n", __func__, NodeAddr, mask);
-	
 	return DRV_OK;
 }
 
 #endif
+
+int Board_Mng_50_Set_Phone_Len(uint8 len)
+{
+	uint8 PfCmd[4] = {0, 0x54, 0x25};
+
+	PfCmd[3] = len;
+	
+	sendNetMngMsgTo50Board_sync((uint8 *)&PfCmd,sizeof(PfCmd), PF_INFO_TYPE_PHONENUM_LEN_CFG_ACK);
+
+	printf("%s len=%d\n", __func__, len);
+	return DRV_OK;
+}
+
+int Board_Mng_50_Del_Phone_Book_Num(uint32 ipAddr)
+{
+	uint8 PfCmd[7] = {0, 0x94, 0x26};
+	*(uint32 *)&PfCmd[3] = htonl(ipAddr);
+	sendNetMngMsgTo50Board_sync((uint8 *)&PfCmd,sizeof(PfCmd), PF_INFO_TYPE_PHONEBOOK_NUM_DEL_ACK1);	
+	
+	uint8 PfCmd2[7] = {0, 0x38, 0x26};
+	*(uint32 *)&PfCmd2[3] = htonl(ipAddr);
+	sendNetMngMsgTo50Board_sync((uint8 *)&PfCmd,sizeof(PfCmd), PF_INFO_TYPE_PHONEBOOK_NUM_DEL_ACK2);		
+}
+
+int Board_Mng_50_Set_Phone_Book_Num(uint32 ipAddr, uint32 phoneNum)
+{
+	MNG_Pf_Set_Phone_Book_Num_MSG PfCmd;
+
+	uint8 cmdId[3] = {0, 0x74, 0x26};
+	memcpy(PfCmd.InfoType, cmdId, 3);
+	PfCmd.IPAddr = ipAddr;
+	PfCmd.Count = 1;
+	PfCmd.PhoneNumU = 0;
+	PfCmd.PhoneNumL = phoneNum;
+	sendNetMngMsgTo50Board_sync((uint8 *)&PfCmd,sizeof(PfCmd), PF_INFO_TYPE_PHONEBOOK_NUM_ADD_ACK1);
+	DBG("%s ip=0x%x, phoneNum=%d\n", __func__, ipAddr, phoneNum);
+
+	uint8 cmdId2[3] = {0, 0x38, 0x26};
+	memcpy(PfCmd.InfoType, cmdId2, 3);
+	PfCmd.IPAddr = ipAddr;
+	sendNetMngMsgTo50Board_sync((uint8 *)&PfCmd,7, PF_INFO_TYPE_PHONEBOOK_NUM_ADD_ACK2);	
+
+	printf("%s \n", __func__);
+	
+	return DRV_OK;
+}
+
+int pfyhhm_cb(unsigned char *buf, int len) {
+	int cnt, i;
+	uint8 *pCfg;
+	uint32 ipAddr, phoneNum;
+
+	cnt = buf[0];
+	dump_buf(__func__, buf, 1 + cnt * 8);
+
+	for(i = 0; i < cnt; i++){
+		pCfg = &buf[1+i*8];
+		ipAddr = ntohl(*(uint32 *)(pCfg));
+		phoneNum = ntohl(*(uint32 *)(pCfg + 4));
+		Board_Mng_50_Set_Phone_Book_Num(ipAddr, phoneNum);
+	}
+		
+	return 0;
+}
+
+int Board_Mng_50_Set_Local_Phone_Num(uint32 phoneNum, uint16 channel, uint8 priority, uint8 conven)
+{
+	MNG_Pf_Set_Local_Phone_Num_MSG PfCmd;
+
+	uint8 cmdId[3] = {0, 0x64, 0x21};
+	memcpy(PfCmd.InfoType, cmdId, 3);
+	PfCmd.PhoneNumU = 0;
+	PfCmd.PhoneNumL = phoneNum;
+	PfCmd.Channel = channel;
+	PfCmd.PriorityConven= (priority << 4 & 0xf0) | (conven & 0x0f);
+	sendNetMngMsgTo50Board_sync((uint8 *)&PfCmd,sizeof(PfCmd), PF_INFO_TYPE_PHONE_LOCAL_NUM_ADD_ACK);
+	DBG("%s phoneNum=%d, chan=%d, prio=%d, conv=%d \n", __func__, phoneNum, channel, priority, conven);
+	
+	return DRV_OK;
+}
+
+int Board_Mng_50_Del_Local_Phone_Num()
+{
+	uint8 cmdId[3] = {0, 0x80, 0x21};
+	sendNetMngMsgTo50Board_sync((uint8 *)&cmdId,sizeof(cmdId), PF_INFO_TYPE_PHONE_LOCAL_NUM_DEL_ACK1);
+
+	uint8 cmdId2[3] = {0, 0x24, 0x21};
+	sendNetMngMsgTo50Board_sync((uint8 *)&cmdId,sizeof(cmdId), PF_INFO_TYPE_PHONE_LOCAL_NUM_DEL_ACK2);
+	
+	return DRV_OK;
+}
+
+int pfbdhm_cb(unsigned char *buf, int len) {
+	int cnt, i;
+	uint8 *pCfg, prior, conv;
+	uint32 phoneNum;
+	uint16 channel;
+
+	cnt = buf[0];
+	dump_buf(__func__, buf, 1 + cnt * 8);
+
+	for(i = 0; i < cnt; i++){
+		pCfg = &buf[1+i*8];
+		channel = ntohs(*(uint16 *)(pCfg));
+		phoneNum = ntohl(*(uint32 *)(pCfg + 2));
+		prior = *(pCfg + 6);
+		conv = *(pCfg + 7);
+		Board_Mng_50_Set_Local_Phone_Num(phoneNum, channel, prior, conv);
+	}
+		
+	return 0;
+}
+
 
 int Board_Mng_50_Set_VHF_Inf_Type(uint8 InfId, uint8 InfType)
 {
@@ -289,17 +402,25 @@ int Board_Mng_50_Set_VHF_Inf_Type(uint8 InfId, uint8 InfType)
 
 int test_example_board_50()
 {
-	int i;
+	printf("=========================================Board_Mng_50_Handshake \n");
+	Board_Mng_50_Handshake();
 
-	for (i = 0; i < 3; i++) { 
-		Board_Mng_50_Handshake();
-		sleep(3);
-	}
+	//printf("=========================================Board_Mng_50_Set_Node_Addr \n");
+	//Board_Mng_50_Set_Node_Addr(htonl(inet_addr("50.1.36.165")), 25);
 
-	//Board_Mng_50_Set_VHF_Inf_Type(1, 1);
+	//printf("=========================================Board_Mng_50_Set_Phone_Len \n");
+	//Board_Mng_50_Set_Phone_Len(7);
+	//printf("==========================================Board_Mng_50_Set_Phone_Book_Num\n");
+	//Board_Mng_50_Set_Phone_Book_Num(get_paofang50_mng_ip(), 3333333);
+	//printf("==========================================Board_Mng_50_Set_Local_Phone_Num\n");
+	//Board_Mng_50_Set_Local_Phone_Num(3333333, 3, 1, 1);
+	//printf("==========================================Board_Mng_50_Del_Phone_Book_Num\n");
+	//Board_Mng_50_Del_Phone_Book_Num(get_paofang50_mng_ip());	
+	//printf("==========================================Board_Mng_50_Del_Local_Phone_Num\n");
+	//Board_Mng_50_Del_Local_Phone_Num();
+
 	
-	Board_Mng_50_Set_Node_Addr(htonl(inet_addr("50.1.36.162")), 27);
-
+	sleep(100);
 	return 0;
 }
 

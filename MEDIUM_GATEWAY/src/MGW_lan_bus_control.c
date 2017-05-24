@@ -5,6 +5,7 @@
 ==========================================================
 */
 #include "PUBLIC.h"
+#include "50MngProto.h"
 
 /*端口及IP信息由配置文件确定*/
 #define		RTP_START		30000
@@ -1407,8 +1408,6 @@ int32 Board_50_Mng_Socket_Close(void)
 	return DRV_OK;
 }
 
-#define PAOFANG50_MNG_SET_IP_ADDR_CMD 0xa000
-
 uint32 get_paofang50_mng_ip() {
 
 	return paofang50_mng_ip;
@@ -1452,15 +1451,17 @@ void Board_50_Net_Mng_RxThread(void)
 			printf("%s, replyId=0x%x \n", __func__, replyId);
 			
 			switch(replyId) {
-			case PAOFANG50_MNG_SET_IP_ADDR_CMD:
+			case PF_INFO_TYPE_HANDSHAKE_CFG_ACK:
 				paofang50_mng_ip = ntohl(*(uint32 *)&pMsg->Data[4]);
 				printf("%s, paofang50_mng_ip=0x%x\n", __func__, paofang50_mng_ip);
+				break;
+			case PF_INFO_TYPE_NODE_ADDR_CFG_ACK:
 				break;
 			default:
 				break;
 			}
 	
-			//signalQueryEvent(*(uint16 *)(&rcv->Data[1]));
+			signalQueryEvent(replyId);
 		}
 	}
 }
