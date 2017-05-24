@@ -273,11 +273,8 @@ int Board_Mng_50_Set_Node_Addr(uint32 NodeAddr, uint8 mask)
 int Board_Mng_50_Set_Phone_Len(uint8 len)
 {
 	uint8 PfCmd[4] = {0, 0x54, 0x25};
-
 	PfCmd[3] = len;
-	
 	sendNetMngMsgTo50Board_sync((uint8 *)&PfCmd,sizeof(PfCmd), PF_INFO_TYPE_PHONENUM_LEN_CFG_ACK);
-
 	printf("%s len=%d\n", __func__, len);
 	return DRV_OK;
 }
@@ -293,18 +290,17 @@ int Board_Mng_50_Del_Phone_Book_Num(uint32 ipAddr)
 	sendNetMngMsgTo50Board_sync((uint8 *)&PfCmd,sizeof(PfCmd), PF_INFO_TYPE_PHONEBOOK_NUM_DEL_ACK2);		
 }
 
-int Board_Mng_50_Set_Phone_Book_Num(uint32 ipAddr, uint32 phoneNum)
+int Board_Mng_50_Set_Phone_Book_Num(uint32 ipAddr, uint8 *phoneNum)
 {
 	MNG_Pf_Set_Phone_Book_Num_MSG PfCmd;
 
 	uint8 cmdId[3] = {0, 0x74, 0x26};
 	memcpy(PfCmd.InfoType, cmdId, 3);
-	PfCmd.IPAddr = ipAddr;
+	PfCmd.IPAddr = htonl(ipAddr);
 	PfCmd.Count = 1;
-	PfCmd.PhoneNumU = 0;
-	PfCmd.PhoneNumL = phoneNum;
+	memcpy(PfCmd.PhoneNum, phoneNum, 8);
+	dump_buf(__func__, &PfCmd, sizeof(PfCmd));
 	sendNetMngMsgTo50Board_sync((uint8 *)&PfCmd,sizeof(PfCmd), PF_INFO_TYPE_PHONEBOOK_NUM_ADD_ACK1);
-	DBG("%s ip=0x%x, phoneNum=%d\n", __func__, ipAddr, phoneNum);
 
 	uint8 cmdId2[3] = {0, 0x38, 0x26};
 	memcpy(PfCmd.InfoType, cmdId2, 3);
@@ -318,34 +314,35 @@ int Board_Mng_50_Set_Phone_Book_Num(uint32 ipAddr, uint32 phoneNum)
 
 int pfyhhm_cb(unsigned char *buf, int len) {
 	int cnt, i;
-	uint8 *pCfg;
-	uint32 ipAddr, phoneNum;
+	uint8 *pCfg, phoneNum[8];
+	uint32 ipAddr;
 
 	cnt = buf[0];
-	dump_buf(__func__, buf, 1 + cnt * 8);
+	dump_buf(__func__, buf, 1 + cnt * 12);
 
 	for(i = 0; i < cnt; i++){
-		pCfg = &buf[1+i*8];
+		pCfg = &buf[1+i*12];
+		dump_buf(__func__, pCfg, 12);
 		ipAddr = ntohl(*(uint32 *)(pCfg));
-		phoneNum = ntohl(*(uint32 *)(pCfg + 4));
+		memcpy(phoneNum, pCfg + 4, 8);
 		Board_Mng_50_Set_Phone_Book_Num(ipAddr, phoneNum);
 	}
 		
 	return 0;
 }
 
-int Board_Mng_50_Set_Local_Phone_Num(uint32 phoneNum, uint16 channel, uint8 priority, uint8 conven)
+int Board_Mng_50_Set_Local_Phone_Num(uint8 *phoneNum, uint16 channel, uint8 priority, uint8 conven)
 {
 	MNG_Pf_Set_Local_Phone_Num_MSG PfCmd;
-
 	uint8 cmdId[3] = {0, 0x64, 0x21};
+	
 	memcpy(PfCmd.InfoType, cmdId, 3);
-	PfCmd.PhoneNumU = 0;
-	PfCmd.PhoneNumL = phoneNum;
+	memcpy(PfCmd.PhoneNum, phoneNum, 8);
 	PfCmd.Channel = channel;
 	PfCmd.PriorityConven= (priority << 4 & 0xf0) | (conven & 0x0f);
+
+	dump_buf(__func__, &PfCmd, sizeof(PfCmd));
 	sendNetMngMsgTo50Board_sync((uint8 *)&PfCmd,sizeof(PfCmd), PF_INFO_TYPE_PHONE_LOCAL_NUM_ADD_ACK);
-	DBG("%s phoneNum=%d, chan=%d, prio=%d, conv=%d \n", __func__, phoneNum, channel, priority, conven);
 	
 	return DRV_OK;
 }
@@ -363,8 +360,7 @@ int Board_Mng_50_Del_Local_Phone_Num()
 
 int pfbdhm_cb(unsigned char *buf, int len) {
 	int cnt, i;
-	uint8 *pCfg, prior, conv;
-	uint32 phoneNum;
+	uint8 *pCfg, prior, conv, phoneNum[8];
 	uint16 channel;
 
 	cnt = buf[0];
@@ -373,13 +369,46 @@ int pfbdhm_cb(unsigned char *buf, int len) {
 	for(i = 0; i < cnt; i++){
 		pCfg = &buf[1+i*8];
 		channel = ntohs(*(uint16 *)(pCfg));
-		phoneNum = ntohl(*(uint32 *)(pCfg + 2));
-		prior = *(pCfg + 6);
-		conv = *(pCfg + 7);
+		memcpy(phoneNum, pCfg+2, 8);
+		prior = *(pCfg + 10);
+		conv = *(pCfg + 11);
 		Board_Mng_50_Set_Local_Phone_Num(phoneNum, channel, prior, conv);
 	}
 		
 	return 0;
+}
+
+int Board_Mng_50_Add_Conf(uint16 confNum, uint8 membCnt, uint8* membs)
+{
+	MNG_Pf_Add_Conf_MSG PfCmd;
+	int i;
+
+	memset(&PfCmd, 0, sizeof(PfCmd));
+	uint8 cmdId[3] = {0, 0x7C, 0x23};
+	memcpy(PfCmd.InfoType, cmdId, 3);
+	PfCmd.ConfNum = confNum;
+	PfCmd.MembCnt = membCnt;
+	DBG("%s confNum=%d, membCnt=%d\n", __func__, confNum, membCnt);
+	for (i = 0; i < membCnt; i++) {
+		memcpy(&PfCmd.Membs[i][0], membs+8*i, 8);
+	}
+	sendNetMngMsgTo50Board_sync((uint8 *)&PfCmd, 6+8*membCnt, PF_INFO_TYPE_CONF_ADD_ACK1);
+
+	uint8 cmdId2[3] = {0, 0x20, 0x23};
+	sendNetMngMsgTo50Board_sync((uint8 *)&cmdId2, sizeof(cmdId2), PF_INFO_TYPE_CONF_ADD_ACK2);	
+	return DRV_OK;
+}
+
+int Board_Mng_50_Del_Conf(uint16 confNum)
+{
+
+	uint8 cmdId[5] = {0, 0x9c, 0x23};
+	*(uint16 *)&cmdId[3] = htons(confNum);
+	sendNetMngMsgTo50Board_sync((uint8 *)&cmdId, sizeof(cmdId), PF_INFO_TYPE_CONF_ADD_ACK1);
+
+	uint8 cmdId2[3] = {0, 0x20, 0x23};
+	sendNetMngMsgTo50Board_sync((uint8 *)&cmdId2, sizeof(cmdId2), PF_INFO_TYPE_CONF_ADD_ACK2);	
+	return DRV_OK;
 }
 
 
@@ -400,6 +429,32 @@ int Board_Mng_50_Set_VHF_Inf_Type(uint8 InfId, uint8 InfType)
 	return DRV_OK;
 }
 
+/* 将整形数转成N字节数组*/
+/* 例如0x1234 ->a[8] : {34, 12, 0, 0, 0, 0, 0, 0} */
+void int_to_array(int data, uint8 *array, int N) {
+	int i;
+
+	for (i = 0; i < N; i++)
+		array[i] = (data >> (8 * i)) & 0xff;
+
+	DBG("%s data=0x%x\n", __func__, data);
+	dump_buf(__func__, array, N);
+}
+
+/* 将整形数转成N字节数组*/
+/* 例如0x1234 ->a[8] : {0, 0, 0, 0, 0, 0, 12, 34} */
+
+void int_to_array_reverse(int data, uint8 *array, int N) {
+	int i;
+
+	for (i = 0; i < N; i++)
+		array[N-i-1] = (data >> (8 * i)) & 0xff;
+
+	DBG("%s data=0x%x\n", __func__, data);
+	dump_buf(__func__, array, N);
+}
+
+
 int test_example_board_50()
 {
 	printf("=========================================Board_Mng_50_Handshake \n");
@@ -411,13 +466,28 @@ int test_example_board_50()
 	//printf("=========================================Board_Mng_50_Set_Phone_Len \n");
 	//Board_Mng_50_Set_Phone_Len(7);
 	//printf("==========================================Board_Mng_50_Set_Phone_Book_Num\n");
-	//Board_Mng_50_Set_Phone_Book_Num(get_paofang50_mng_ip(), 3333333);
+	//uint32 phoneNum1 = 2222222;
+	//uint8 phoneNum[8];
+	//int_to_array_reverse(phoneNum1,phoneNum,8);
+	//Board_Mng_50_Set_Phone_Book_Num(get_paofang50_mng_ip(), phoneNum);
 	//printf("==========================================Board_Mng_50_Set_Local_Phone_Num\n");
-	//Board_Mng_50_Set_Local_Phone_Num(3333333, 3, 1, 1);
+	//int channel = 10;
+	//Board_Mng_50_Set_Local_Phone_Num(phoneNum, channel, 1, 1);
 	//printf("==========================================Board_Mng_50_Del_Phone_Book_Num\n");
 	//Board_Mng_50_Del_Phone_Book_Num(get_paofang50_mng_ip());	
 	//printf("==========================================Board_Mng_50_Del_Local_Phone_Num\n");
 	//Board_Mng_50_Del_Local_Phone_Num();
+	//printf("===========================================Board_Mng_50_Add_Conf \n");
+	//uint8 membs[3*8];
+	//uint32 memb[3] = {7111906, 7111907, 7111908};
+	//uint8 cnt = 3;
+	//int conf = 124;
+	//int i;
+	//for (i = 0; i < cnt; i++)
+	//	int_to_array_reverse(memb[i], membs + 8*i, 8);
+	//Board_Mng_50_Add_Conf(conf, cnt, membs);	
+	//printf("===========================================Board_Mng_50_Del_Conf \n");
+	//Board_Mng_50_Del_Conf(conf);
 
 	
 	sleep(100);

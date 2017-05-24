@@ -23,6 +23,8 @@ typedef enum {
 	PF_INFO_TYPE_PHONE_LOCAL_NUM_ADD_ACK = 0xa421,	
 	PF_INFO_TYPE_PHONE_LOCAL_NUM_DEL_ACK1 = 0xa021,	
 	PF_INFO_TYPE_PHONE_LOCAL_NUM_DEL_ACK2 = 0x14e1,	
+	PF_INFO_TYPE_CONF_ADD_ACK1 = 0xbc23,	
+	PF_INFO_TYPE_CONF_ADD_ACK2 = 0xa023,	
 } PfMngReplyId;
 
 #pragma pack(1)
@@ -63,18 +65,26 @@ typedef struct
 	uint8 InfoType[3];
 	uint32 IPAddr;
 	uint8 Count;
-	uint32 PhoneNumU;
-	uint32 PhoneNumL;
+	uint8 PhoneNum[8];
 }__attribute__((packed))MNG_Pf_Set_Phone_Book_Num_MSG;
 
 typedef struct
 {
 	uint8 InfoType[3];
-	uint32 PhoneNumU;
-	uint32 PhoneNumL;
+	uint8 PhoneNum[8];
 	uint8 Channel;
 	uint8 PriorityConven;
 }__attribute__((packed))MNG_Pf_Set_Local_Phone_Num_MSG;
+
+#define CONF_50_MEMB_CNT_MAX 20
+typedef struct
+{
+	uint8 InfoType[3];
+	uint16 ConfNum;
+	uint8 MembCnt;
+	uint8 Membs[CONF_50_MEMB_CNT_MAX][8];
+}__attribute__((packed))MNG_Pf_Add_Conf_MSG;
+
 
 
 #pragma pack(0)
