@@ -411,6 +411,32 @@ int Board_Mng_50_Del_Conf(uint16 confNum)
 	return DRV_OK;
 }
 
+int Board_Mng_50_Set_Wire_QunLu(uint8 portId, uint8 master, uint8 speed)
+{
+	uint8 cmdId[5] = {0, 0x5c, 0xa1};
+	cmdId[3] = portId;
+	cmdId[4] = (master << 7) | speed;
+
+	DBG("%s, portId=%d, master=%d, speed=%d\n", __func__, portId, master, speed);
+	sendNetMngMsgTo50Board_sync((uint8 *)&cmdId, sizeof(cmdId), PF_INFO_TYPE_WIRE_QUNLU_CFG_ACK);
+	return DRV_OK;
+}
+
+int Board_Mng_50_Set_IP_QunLu(uint8 portId, uint8 master, uint8 speed)
+{
+	uint8 cmdId[5] = {0, 0x4d, 0x1f};
+	cmdId[3] = portId;
+	cmdId[4] = master;
+	DBG("%s, portId=%d, master=%d, speed=%d\n", __func__, portId, master, speed);
+	sendNetMngMsgTo50Board_sync((uint8 *)&cmdId, sizeof(cmdId), PF_INFO_TYPE_IP_QUNLU_CFG_ACK1);
+
+	uint8 cmdId2[5] = {0, 0x4d, 0x0e};
+	cmdId2[3] = portId;
+	cmdId2[4] = speed;
+	sendNetMngMsgTo50Board_sync((uint8 *)&cmdId2, sizeof(cmdId2), PF_INFO_TYPE_IP_QUNLU_CFG_ACK2);
+	return DRV_OK;
+}
+
 
 int Board_Mng_50_Set_VHF_Inf_Type(uint8 InfId, uint8 InfType)
 {
@@ -488,6 +514,22 @@ int test_example_board_50()
 	//Board_Mng_50_Add_Conf(conf, cnt, membs);	
 	//printf("===========================================Board_Mng_50_Del_Conf \n");
 	//Board_Mng_50_Del_Conf(conf);
+	//printf("===========================================Board_Mng_50_Set_QunLu \n");
+	//int i;
+	//uint8 portId, master, speed;
+	//for (i = 1; i <= 6; i++) {
+	//	portId = i;
+	//	master = i % 2;
+	//	speed = i / 2;
+	//	Board_Mng_50_Set_Wire_QunLu(portId, master, speed);
+	//}
+	//printf("===========================================Board_Mng_50_Set_IP_QunLu \n");
+	//for (i = 1; i <= 4; i++) {
+	//	portId = i;
+	//	master = i%2 + 1;
+	//	speed = 0x20;
+	//	Board_Mng_50_Set_IP_QunLu(portId, master, speed);
+	//}
 
 	
 	sleep(100);
