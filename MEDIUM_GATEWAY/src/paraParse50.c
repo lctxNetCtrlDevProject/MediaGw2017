@@ -455,6 +455,78 @@ int Board_Mng_50_Set_VHF_Inf_Type(uint8 InfId, uint8 InfType)
 	return DRV_OK;
 }
 
+int Board_Mng_50_Set_VHF(uint8 portId, uint8 protoType, uint8 waveType, uint8 master, 
+	uint8 slotType, uint8 slotId, uint8 clkType, uint8 remoteCtrl, uint8 zhengJiao, uint8 sync)
+{
+	DBG("portId=%d, protoType=%d, waveType=%d, master=%d, \
+		slotType=%d, slotId=%d, clkType=%d, remoteCtrl=%d, zhengJiao=%d, sync=%d \n",
+		portId, protoType, waveType, master, slotType, slotId, clkType, remoteCtrl, zhengJiao, sync);
+	
+	uint8 cmdId[7] = {0, 0x48, 0x61};
+	cmdId[3] = portId;
+	cmdId[4] = protoType;
+	cmdId[5] = waveType;
+	cmdId[6] = master;
+	sendNetMngMsgTo50Board_sync((uint8 *)&cmdId, sizeof(cmdId), PF_INFO_TYPE_VHF_TYPE_CFG_ACK);
+
+	uint8 cmdId2[5] = {0, 0x48, 0x67};
+	cmdId2[3] = portId;
+	cmdId2[4] = slotId;
+	sendNetMngMsgTo50Board_sync((uint8 *)&cmdId2, sizeof(cmdId2), PF_INFO_TYPE_VHF_SLOT_CFG_ACK);
+
+	uint8 cmdId3[5] = {0, 0x48, 0x66};
+	cmdId3[3] = portId;
+	cmdId3[4] = clkType;
+	sendNetMngMsgTo50Board_sync((uint8 *)&cmdId3, sizeof(cmdId3), PF_INFO_TYPE_VHF_CLK_CFG_ACK);	
+
+	uint8 cmdId4[5] = {0, 0x48, 0x71};
+	cmdId4[3] = portId;
+	cmdId4[4] = remoteCtrl;
+	sendNetMngMsgTo50Board_sync((uint8 *)&cmdId4, sizeof(cmdId4), PF_INFO_TYPE_VHF_REMOTE_CTRL_CFG_ACK);	
+
+	uint8 cmdId5[5] = {0, 0x48, 0x6a};
+	cmdId5[3] = portId;
+	cmdId5[4] = (zhengJiao << 4) | sync;
+	sendNetMngMsgTo50Board_sync((uint8 *)&cmdId5, sizeof(cmdId5), PF_INFO_TYPE_VHF_SYNC_CFG_ACK);
+
+	return DRV_OK;
+}
+
+
+int pfvhfp_cb(unsigned char *buf, int len) {
+	int i, cnt = buf[0];
+	uint8 portId, protoType, waveType, master, slotType, slotId, clkType, remoteCtrl, zhengJiao, sync;
+
+	dump_buf(__func__, buf, len);
+	uint8 *pCfg = &buf[1];
+	for (i = 0; i < cnt; i++) {
+		portId = pCfg[0];
+		protoType = pCfg[1];
+		waveType = pCfg[2];
+		master = pCfg[3];
+		slotId = pCfg[4];
+		clkType = pCfg[5];
+		remoteCtrl = pCfg[6];
+		zhengJiao = pCfg[7];
+		sync = pCfg[8];
+		pCfg += 9;	
+	}
+	
+	return 0;
+}
+
+int Board_Mng_50_Set_HF(uint8 portId, uint8 mode, uint8 speed)
+{
+	uint8 cmdId[5] = {0, 0x44, 0x93};
+	cmdId[3] = portId;
+	cmdId[4] = speed;
+	DBG("%s, portId=%d, speed=%d\n", __func__, portId, speed);
+	sendNetMngMsgTo50Board_sync((uint8 *)&cmdId, sizeof(cmdId), PF_INFO_TYPE_HF_CFG_ACK);
+
+	return DRV_OK;
+}
+
+
 /* 将整形数转成N字节数组*/
 /* 例如0x1234 ->a[8] : {34, 12, 0, 0, 0, 0, 0, 0} */
 void int_to_array(int data, uint8 *array, int N) {
@@ -530,6 +602,27 @@ int test_example_board_50()
 	//	speed = 0x20;
 	//	Board_Mng_50_Set_IP_QunLu(portId, master, speed);
 	//}
+	//printf("===========================================Board_Mng_50_Set_VHF \n");
+	//uint8 portId, protoType, waveType, master, slotType, slotId, clkType, remoteCtrl, zhengJiao, sync;
+	//for (i = 1; i <= 1; i++) {
+	//	portId = i;
+	//	protoType = 3;
+	//	waveType = 1;
+	//	master = 1;
+	//	slotId = 3;
+	//	clkType = 1;//i%2;
+	//	remoteCtrl = 1;//i%2;
+	//	zhengJiao = 1;//i%2;
+	//	sync = 1;//i%3;
+	//	Board_Mng_50_Set_VHF(portId, protoType, waveType, master, slotType, slotId, clkType, remoteCtrl, zhengJiao, sync);
+	//}
+	//printf("===========================================Board_Mng_50_Set_HF \n");
+	//uint8 portId = 5;
+	//uint8 speed = 2;
+	//Board_Mng_50_Set_HF(portId, 0, speed);
+	//portId =7;
+	//speed = 4;
+	//Board_Mng_50_Set_HF(portId, 0, speed);
 
 	
 	sleep(100);

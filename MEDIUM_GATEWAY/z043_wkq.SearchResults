@@ -1,6 +1,2 @@
----- SocketT_BoardNetMngIP_50 Matches (5 in 1 files) ----
-MGW_lan_bus_control.c (src):struct sockaddr_in SocketT_BoardNetMngIP_50;
-MGW_lan_bus_control.c (src):	ret = Socket_Send(gRpcBoardNetMngSocket_50, (struct sockaddr_in*)&SocketT_BoardNetMngIP_50, buf, len);
-MGW_lan_bus_control.c (src):	SocketT_BoardNetMngIP_50.sin_family = AF_INET;
-MGW_lan_bus_control.c (src):	SocketT_BoardNetMngIP_50.sin_addr.s_addr = htonl(inet_addr(PAOFANG_BRD_MNG_IP));
-MGW_lan_bus_control.c (src):	SocketT_BoardNetMngIP_50.sin_port = htonl(PAOFANG_BRD_MNG_PORT);
+---- Board_Mng_50_Set_VHF_Inf_Type Matches (1 in 1 files) ----
+paraParse50.c (src):int Board_Mng_50_Set_VHF_Inf_Type(uint8 InfId, uint8 InfType)
