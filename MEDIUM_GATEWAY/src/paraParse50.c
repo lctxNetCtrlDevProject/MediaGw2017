@@ -68,6 +68,12 @@ PfCmdReplyMap PfCmdReplyArray[] = {
 	//PF_INFO_TYPE_VHF_INF_TYPE_CFG, PF_INFO_TYPE_VHF_INF_TYPE_CFG_ACK,
 };
 
+extern uint32 get_paofang50_mng_ip();
+extern void set_paofang50_mng_ip(uint32 ipAddr);
+extern int32 Board_Net_Mng_SendTo_50(uint8 *buf, int32 len);
+extern int waitQueryEventTimed(unsigned int order, int expTimMs);
+
+
 static void dump_buf(unsigned char* str, const unsigned char* buf,int count)
 {
 	int i;
@@ -143,6 +149,7 @@ void SrcToZhuanYiCode(int codeFormat, uint8 *data, int len)
 	uint8 src = 0, dst = 0, tmp = 0;
 	if (len < 0 || !data) {
 		printf("%s,LINE %d, error \n", __func__, __LINE__);
+		return;
 	}
 	dump_buf(__func__, data, len);
 	
@@ -287,7 +294,8 @@ int Board_Mng_50_Del_Phone_Book_Num(uint32 ipAddr)
 	
 	uint8 PfCmd2[7] = {0, 0x38, 0x26};
 	*(uint32 *)&PfCmd2[3] = htonl(ipAddr);
-	sendNetMngMsgTo50Board_sync((uint8 *)&PfCmd,sizeof(PfCmd), PF_INFO_TYPE_PHONEBOOK_NUM_DEL_ACK2);		
+	sendNetMngMsgTo50Board_sync((uint8 *)&PfCmd,sizeof(PfCmd), PF_INFO_TYPE_PHONEBOOK_NUM_DEL_ACK2);
+	return 0;
 }
 
 int Board_Mng_50_Set_Phone_Book_Num(uint32 ipAddr, uint8 *phoneNum)

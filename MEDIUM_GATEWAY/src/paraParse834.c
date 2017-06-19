@@ -8,6 +8,7 @@
 
 
 extern int32 Board_Mng_SendTo_834(uint8 *buf, int32 len);
+extern int waitQueryEventTimed(unsigned int order, int expTimMs);
 
 typedef struct
 {

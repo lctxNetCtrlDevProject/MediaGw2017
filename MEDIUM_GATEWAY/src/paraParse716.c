@@ -9,6 +9,9 @@
 
 
 extern int32 Board_Mng_SendTo_716(uint8 *buf, int32 len);
+extern int waitQueryEventTimed(unsigned int order, int expTimMs);
+extern int32 Board_Mng_SendTo_Display(uint8 *buf, int32 len);
+
 
 typedef struct
 {
@@ -667,6 +670,7 @@ int Board_Mng_Meet_DelAll()
 	ZxCmd.MsgLen = 0;
 	
 	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd.header)+ZxCmd.header.CmdLen);
+	return 0;
 }
 
 
@@ -689,6 +693,8 @@ int Board_Mng_Meet_Cfg(uint8 *pConfNum, uint8 *pMebs, int mebsCnt)
 
 	//DBG("\r\n>> %s, len=%d\n", __func__, sizeof(ZxCmd.header)+ZxCmd.header.CmdLen);
 	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd.header)+ZxCmd.header.CmdLen);
+	return 0;
+
 }
 
 int meetpa_cb(unsigned char *buf, int len) {
@@ -727,6 +733,8 @@ int Board_Mng_ZX_DelAll()
 	ZxCmd.type = 1;
 	ZxCmd.Index = 0;
 	sendMsgTo716Board(&ZxCmd, 9);
+
+	return 0;
 }
 
 
@@ -749,6 +757,8 @@ int Board_Mng_ZX_Cfg(uint8 type, uint8 phoneId, uint8 chanId, uint8 *pArmyId,uin
 	memcpy(ZxCmd.calleeNum, pCalleeNum,4);
 
 	sendMsgTo716Board(&ZxCmd,sizeof(ZxCmd));
+	return 0;
+
 }
 
 /*ZhuanXian Cfg*/

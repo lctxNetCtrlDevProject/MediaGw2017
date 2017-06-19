@@ -346,7 +346,7 @@ typedef struct
 	uint8 cmd;
 	uint8 type;
 	uint8 data_len;
-	unsigned char	body[16];
+	unsigned char	body[40];
 }__attribute__ ((packed)) ST_DISPLAY_MNG_MSG;
 
 

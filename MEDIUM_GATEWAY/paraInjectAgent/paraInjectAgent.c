@@ -13,6 +13,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <errno.h>
+#include <pthread.h>
 
 #include "paraInjectAgent.h"
 #include "debug.h"
@@ -131,6 +132,11 @@ int 			g_listenFd;
 
 
 /*****************Funcs****************************/
+
+extern int DisplayBoardCLear();
+extern int DispBoardShowInjIng();
+extern int DisplayBoardShowInjOK();
+
 
 void dispPkt(const char *dispName, unsigned char *pkt, int len){
 	int i =0;

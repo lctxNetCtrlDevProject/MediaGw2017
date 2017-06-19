@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 #include "paraInjectAgent.h"
 #include "MGWparaInject.h"
 #include "debug.h"
@@ -64,6 +66,14 @@ extern int mgwcof_cb(unsigned char *buf, int len);
 extern int compar_cb(unsigned char *buf, int len);
 extern int fibrpa_cb(unsigned char *buf, int len);
 extern int ippara_cb(unsigned char *buf, int len);
+extern int initQueryEvent(int size);
+extern void dispPkt(const char *dispName, unsigned char *pkt, int len);
+extern int Board_Mng_ZX_DelAll();
+extern int Board_Mng_StRt_DelAll();
+extern int Board_Mng_Meet_DelAll();
+extern int Board_Mng_Lyjh_DelAll();
+extern int Board_Mng_IPIntf_Addr_DelAll();
+extern int Board_Mng_DelAll_User_Num();
 
 
 

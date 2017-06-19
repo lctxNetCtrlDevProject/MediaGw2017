@@ -153,6 +153,10 @@ char inc_config_log_dir[PATH_MAX] = "/tmp/log";
 char system_name[20];
 
 extern uint32 time_cnt_100ms; //计算成员是否掉线时间
+extern int32 snmpAgentMng_Socket_init(void);
+extern int32 Board_50_Mng_Socket_init(void);
+extern int DisplayBoardShowVersion();
+extern int32 Board_50_Net_Mng_Socket_init(void);
 
 
 static void * do_monitor(void *arg)
@@ -764,7 +768,7 @@ int main(int argc, char *argv[])
 	// here, we bind *:30006 in RpcSeatMng_RxThread. so , this one do not need RpcSeatMng_Default_RxThread
 	//by -Andy-wei.hou 2017.02.20
 
-	test_example_board_50();
+	//test_example_board_50();
 
 	inc_pthread_create(&thread_monitor,NULL,do_monitor,NULL);
 

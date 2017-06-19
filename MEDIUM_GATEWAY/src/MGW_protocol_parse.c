@@ -34,6 +34,8 @@ unsigned char herader50[MSG_HEADER_LEN + 2] =
 	0x00,0x00
 };
 
+extern int32 Board_Mng_SendTo_SnmpAgent(uint8 *buf, int32 len);
+
 int32 Socket_Send(int32 bsockfd,struct sockaddr_in *pt, uint8 *ptr,int32 len)
 {	
 	struct sockaddr_in *des_addr_p;

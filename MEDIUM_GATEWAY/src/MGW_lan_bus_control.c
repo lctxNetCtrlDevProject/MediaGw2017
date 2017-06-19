@@ -69,6 +69,10 @@ static struct io_context	*rtp_ioc = NULL;
 char	flag_dump = DUMP_CLOSE;
 static char rawdata[EXTMAXDATASIZE];
 
+extern int signalQueryEvent( unsigned char respOrder);
+extern void SrcToZhuanYiCode(int codeFormat, uint8 *data, int len);
+
+
 int32 Board_Mng_SendTo_Display(uint8 *buf, int32 len)
 {
 	int i = 0;
@@ -592,6 +596,7 @@ int32 snmpAgentMng_Socket_init(void){
 	SocketT_834SnmpAgent.sin_family = AF_INET;
 	SocketT_834SnmpAgent.sin_addr.s_addr = htonl(inet_addr("127.0.0.1"));
 	SocketT_834SnmpAgent.sin_port = htonl(SNMP_AGENT_834_PORT);
+	return 0;
 }
 
 int32 RpcDisplayMng_Socket_init(void)
@@ -1425,7 +1430,7 @@ void Board_50_Net_Mng_RxThread(void)
 	uint8 abuf[MAX_SOCKET_LEN] = {0};
 	NET_MNG_50_MSG *pMsg = (NET_MNG_50_MSG *)abuf;
 	int Rec_Len;
-	int len;
+	int len = 0;
 	int i = 0;
 	uint16 replyId;
 
